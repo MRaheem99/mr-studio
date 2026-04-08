@@ -30,7 +30,6 @@ function isPointInPolygon(point, vertices) {
     return inside;
 }
 
-// Check if a stroke is closed (using strokesData)
 function isStrokeClosed(shape, strokePoints) {
     if(!strokePoints || strokePoints.length < 3) return false;
     const firstWorld = shape.localToWorld(strokePoints[0].x, strokePoints[0].y);
@@ -158,7 +157,7 @@ function fillAtPosition(e) {
             }
             if(clickedShape) break;
         } 
-        // For regular shapes
+        
         else if(shape.isPointInside && shape.isPointInside(pos.x, pos.y)) {
             console.log("Regular shape clicked:", shape.type);
             if((shape.type === 'polyline' || shape.type === 'path') && !isShapeClosed(shape)) {
