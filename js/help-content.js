@@ -1,5 +1,3 @@
-// help-content.js
-
 const helpContent = `
     <div style="padding: 5px;">
         <!-- Quick Start -->
@@ -216,13 +214,11 @@ const helpContent = `
     </div>
 `;
 
-// Load help content
 function loadHelpContent() {
     const helpContentDiv = document.getElementById('helpContent');
     if (helpContentDiv) {
         helpContentDiv.innerHTML = helpContent;
         
-        // Add event listeners for links
         const docLink = document.getElementById('docLink');
         const githubLink = document.getElementById('githubLink');
         const emailLink = document.getElementById('emailLink');
@@ -237,7 +233,7 @@ function loadHelpContent() {
         if (githubLink) {
             githubLink.addEventListener('click', (e) => {
                 e.preventDefault();
-                window.open('https://github.com/yourusername/mr-animator', '_blank');
+                window.open('https://github.com/mraheem99/mr-animator', '_blank');
             });
         }
         
