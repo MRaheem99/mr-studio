@@ -66,6 +66,7 @@ Whether you're a professional animator, motion graphics designer, or hobbyist, M
 - **Image Filters** - Brightness, contrast, saturation, blur
 
 ### 📦 Export Formats
+
 | Format | Description |
 |--------|-------------|
 | **WebM** | High-quality video with transparency support |
@@ -73,61 +74,105 @@ Whether you're a professional animator, motion graphics designer, or hobbyist, M
 | **PNG Sequence** | Export each frame as PNG (ZIP archive) |
 | **JSON** | Save/load project files for later editing |
 
-### ⌨️ Keyboard Shortcuts
+---
+
+## ⌨️ Keyboard Shortcuts
+
+### Selection & Transform
 
 | Shortcut | Action |
 |----------|--------|
-| **Arrow Keys** | Move selected object by 1px |
-| **Shift + Arrow Keys** | Move selected object by 10px |
-| **Ctrl + Arrow Keys** | Rotate by 5째 |
-| **Ctrl + Shift + Arrow Keys** | Rotate by 15째 |
-| **Delete / Del** | Delete selected object(s) |
-| **Ctrl + C** | Copy selected object(s) |
-| **Ctrl + V** | Paste copied object(s) |
-| **Ctrl + X** | Cut selected object(s) |
-| **Ctrl + D** | Duplicate selected object(s) |
-| **Ctrl + E** | Open Edit Properties modal< |
-| **Ctrl + G** | Group selected objects |
-| **Ctrl + Shift + G** | Ungroup selected group |
-| **Ctrl + A** | Select all objects |
-| **Ctrl + Z** | Undo |
-| **Ctrl + Y / Ctrl + Shift + Z** | Redo |
-| **Ctrl + ]** | Bring Forward (one step) |
-| **Ctrl + [** | Send Backward (one step) |
-| **Ctrl + Shift + ]** | Bring to Front |
-| **Ctrl + Shift + [** | Send to Back |
-| **Ctrl + L	Lock/Unlock** | object |
-| **Ctrl + H	Hide/Show** | object |
-| **Ctrl + Shift + C** | Center object on canvas |
-| **Ctrl + R** | Reset transform |
-| **Ctrl + Shift + H** | Flip Horizontal |
-| **Ctrl + Shift + V** | Flip Vertical |
-| **Ctrl + Shift + E** | Open Export dialog |
-| **Ctrl + Shift + N** | New Project |
-| **Space	Play/Pause** | animation |
-| **Home** | Go to start of animation |
-| **End** |  Go to end of animation |
-| **Escape** | Clear selection |
-| **P** | Pencil tool |
-| **B** | Brush tool |
-| **E** | Eraser tool |
-| **V** | Object mode (Select) |
-| **H** | Canvas mode (Pan) |
-| **F** | Finish drawing |
-| **N** | Add new shape |
-| **T** | Add text |
-| **I** | Import image |
-| **Ctrl + O** | Import project |
-| **Ctrl + Wheel** | Zoom In/out (Canvas mode) |
-| **Ctrl + + / Ctrl + =** | Zoom in (Canvas mode) |
-| **Ctrl + -** | Zoom out (Canvas mode) |
-| **Ctrl + 0** | Reset zoom (Canvas mode) |
-| **F11 / Ctrl + Shift + F** | Fullscreen preview |
+| `Arrow Keys` | Move selected object by 1px |
+| `Shift + Arrow Keys` | Move selected object by 10px |
+| `Ctrl + Arrow Keys` | Rotate by 5° |
+| `Ctrl + Shift + Arrow Keys` | Rotate by 15° |
+| `Delete / Del` | Delete selected object(s) |
+| `Ctrl + A` | Select all objects |
+| `Escape` | Clear selection |
 
-### 🎮 View Modes
-- **Object Mode** - Select and transform objects
-- **Canvas Mode** - Pan and zoom the canvas
-- **Selection Tool** - Dedicated selection mode
+### Edit Operations
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl + C` | Copy selected object(s) |
+| `Ctrl + V` | Paste copied object(s) |
+| `Ctrl + X` | Cut selected object(s) |
+| `Ctrl + D` | Duplicate selected object(s) |
+| `Ctrl + E` | Open Edit Properties modal |
+| `Ctrl + Z` | Undo |
+| `Ctrl + Y / Ctrl + Shift + Z` | Redo |
+
+### Layer Order
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl + ]` | Bring Forward (one step) |
+| `Ctrl + [` | Send Backward (one step) |
+| `Ctrl + Shift + ]` | Bring to Front |
+| `Ctrl + Shift + [` | Send to Back |
+
+### Object Transform
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl + L` | Lock/Unlock object |
+| `Ctrl + H` | Hide/Show object |
+| `Ctrl + Shift + C` | Center object on canvas |
+| `Ctrl + R` | Reset transform |
+| `Ctrl + Shift + H` | Flip Horizontal |
+| `Ctrl + Shift + V` | Flip Vertical |
+
+### Drawing Tools
+
+| Shortcut | Action |
+|----------|--------|
+| `P` | Pencil tool |
+| `B` | Brush tool |
+| `E` | Eraser tool |
+| `F` | Finish drawing |
+| `V` | Object mode (Select) |
+| `H` | Canvas mode (Pan) |
+
+### Shape & Text
+
+| Shortcut | Action |
+|----------|--------|
+| `N` | Add new shape |
+| `T` | Add text |
+| `I` | Import image |
+
+### Group Operations
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl + G` | Group selected objects |
+| `Ctrl + Shift + G` | Ungroup selected group |
+
+### Animation Playback
+
+| Shortcut | Action |
+|----------|--------|
+| `Space` | Play/Pause animation |
+| `Home` | Go to start of animation |
+| `End` | Go to end of animation |
+
+### File Operations
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl + O` | Import project |
+| `Ctrl + Shift + E` | Open Export dialog |
+| `Ctrl + Shift + N` | New Project |
+
+### View Controls (Canvas Mode)
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl + Wheel` | Zoom In/Out |
+| `Ctrl + + / Ctrl + =` | Zoom in |
+| `Ctrl + -` | Zoom out |
+| `Ctrl + 0` | Reset zoom |
+| `F11 / Ctrl + Shift + F` | Fullscreen preview |
 
 ---
 
@@ -135,7 +180,7 @@ Whether you're a professional animator, motion graphics designer, or hobbyist, M
 
 ### Installation
 
-bash
+```bash
 # Clone the repository
 git clone https://github.com/MRaheem99/mr-studio.git
 
