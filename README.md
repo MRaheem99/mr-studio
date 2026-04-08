@@ -97,7 +97,7 @@ Whether you're a professional animator, motion graphics designer, or hobbyist, M
 | **Ctrl + Shift + ]** | Bring to Front |
 | **Ctrl + Shift + [** | Send to Back |
 | **Ctrl + L	Lock/Unlock** | object |
-| **Ctrl + H	Hide/Show ** | object |
+| **Ctrl + H	Hide/Show** | object |
 | **Ctrl + Shift + C** | Center object on canvas |
 | **Ctrl + R** | Reset transform |
 | **Ctrl + Shift + H** | Flip Horizontal |
