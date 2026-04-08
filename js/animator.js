@@ -641,59 +641,34 @@ function onStart(e) {
             return;
         }
     }
-    // In onStart function, when clicking on a shape:
-if (clickedShape && !isEditingPoint) {
-    // Clear previous selection if not multi-selecting
-    const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
-    if (!isMultiSelect) {
-        // Deselect all shapes including groups
-        for (let shape of shapes) {
-            shape.selected = false;
+    
+    if (clickedShape && !isEditingPoint) {
+        const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
+        if (!isMultiSelect) {
+            for (let shape of shapes) {
+                shape.selected = false;
+            }
+            selectedShapes = [];
+            selectedShape = null;
         }
-        selectedShapes = [];
-        selectedShape = null;
-    }
-    
-    // Select the clicked shape
-    clickedShape.selected = true;
-    selectedShape = clickedShape;
-    
-    isDragging = true;
-    dragOffset = {
-        x: pos.x - selectedShape.x,
-        y: pos.y - selectedShape.y
-    };
-    
-    // Update selectedShapes array
-    if (!selectedShapes.includes(clickedShape)) {
-        selectedShapes.push(clickedShape);
-    }
-    
-    if (shapeManager) shapeManager.setSelectedShape(clickedShape);
-    drawAll();
-    e.preventDefault();
-    return;
-}
-
-/*
-    if(clickedShape && !isEditingPoint) {
+        clickedShape.selected = true;
         selectedShape = clickedShape;
-        shapes.forEach(s => s.selected = false);
-        selectedShape.selected = true;
+        
         isDragging = true;
         dragOffset = {
             x: pos.x - selectedShape.x,
             y: pos.y - selectedShape.y
         };
-        if(shapeManager) shapeManager.setSelectedShape(selectedShape);
+        if (!selectedShapes.includes(clickedShape)) {
+            selectedShapes.push(clickedShape);
+        }
+        
+        if (shapeManager) shapeManager.setSelectedShape(clickedShape);
         drawAll();
         e.preventDefault();
         return;
     }
-    */
-    // Click on empty space - clear ALL selections including group children
     if (!clickedShape) {
-        // Clear all selections recursively
         function clearAllSelectionsRecursively(obj) {
             obj.selected = false;
             if (obj.type === 'group' && obj.children) {
