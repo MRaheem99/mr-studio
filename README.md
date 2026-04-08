@@ -118,6 +118,7 @@ Whether you're a professional animator, motion graphics designer, or hobbyist, M
 | **T** | Add text |
 | **I** | Import image |
 | **Ctrl + O** | Import project |
+| **Ctrl + Wheel** | Zoom In/out (Canvas mode) |
 | **Ctrl + + / Ctrl + =** | Zoom in (Canvas mode) |
 | **Ctrl + -** | Zoom out (Canvas mode) |
 | **Ctrl + 0** | Reset zoom (Canvas mode) |
@@ -177,7 +178,7 @@ Transform group - Use handles to transform entire group
 Ungroup - Select group and press Ctrl+Shift+G
 
 
-🛠️ Technology Stack
+### 🛠️ Technology Stack
 Technology	Purpose
 HTML5 Canvas	Rendering engine
 Vanilla JavaScript	Core logic (no frameworks)
@@ -188,7 +189,7 @@ JSZip	PNG sequence export
 gif.js	GIF export
 
 
-📁 Project Structure
+### 📁 Project Structure
 
 mr-studio/
 ├── index.html              # Main entry point
@@ -215,7 +216,7 @@ mr-studio/
 └── README.md
 
 
-🎯 Use Cases
+### 🎯 Use Cases
 Motion Graphics - Create animated logos and titles
 
 Explainers - Animated whiteboard-style videos
@@ -229,7 +230,7 @@ UI Prototypes - Animated interface concepts
 Educational - Teaching animation principles
 
 
-🔧 Browser Support
+### 🔧 Browser Support
 Browser	Version
 Chrome	90+
 Firefox	88+
@@ -237,7 +238,7 @@ Safari	14+
 Edge	90+
 
 
-🤝 Contributing
+### 🤝 Contributing
 Contributions are welcome! Please feel free to submit a Pull Request.
 
 Fork the repository
@@ -263,11 +264,11 @@ Add comments for complex logic
 Test in multiple browsers
 
 
-📝 License
+### 📝 License
 Distributed under the MIT License. See LICENSE file for more information.
 
 
-🙏 Acknowledgments
+### 🙏 Acknowledgments
 Font Awesome - Icons
 
 gif.js - GIF export
@@ -277,16 +278,16 @@ JSZip - PNG sequence export
 Google Fonts - Typography
 
 
-📧 Contact
-Your Name - @yourtwitter - email@example.com
+### 📧 Contact
+mraheem764@gmail.com
 
 Project Link: https://github.com/MRaheem99/mr-studio
 
 
-⭐ Show Your Support
+### ⭐ Show Your Support
 If you found this project helpful, please give it a star on GitHub!
 
 https://img.shields.io/github/stars/MRaheem99/mr-studio
 
 
-<div align="center"> Made with ❤️ by M. Raheem</div>
+### Made with ❤️ by M. Raheem
