@@ -583,7 +583,6 @@
             const index = shapes.indexOf(shape);
             if(index !== -1) shapes.splice(index, 1);
             group.children.push(shape);
-            //shape.parentGroup = group;
         });
         shapes.push(group);
         selectShape(group);
@@ -804,7 +803,6 @@
         }
         initDragAndDropImport();
         
-        // Help Modal
         const btnHelp = document.getElementById('btnHelp');
         const helpModal = document.getElementById('helpModal');
         const closeHelpBtn = document.getElementById('closeHelpBtn');
@@ -830,7 +828,6 @@
             });
         }
         
-        // About Modal
         const btnAbout = document.getElementById('btnAbout');
         const aboutModal = document.getElementById('aboutModal');
         const closeAboutBtn = document.getElementById('closeAboutBtn');
@@ -855,7 +852,6 @@
             });
         }
         
-        // About modal buttons
         const btnWebsite = document.getElementById('btnWebsite');
         const btnReportIssue = document.getElementById('btnReportIssue');
         
@@ -871,7 +867,6 @@
             });
         }
         
-        // Stroke Hardness Slider
         const strokeHardnessContainer = document.getElementById('strokeHardnessContainer');
         if(strokeHardnessContainer) {
             const hardnessSlider = createRNSlider({
@@ -890,7 +885,6 @@
             strokeHardnessContainer.appendChild(hardnessSlider);
         }
         
-        // Eraser Hardness Slider
         const eraserHardnessContainer = document.getElementById('eraserHardnessContainer');
         if(eraserHardnessContainer) {
             const eraserHardnessSlider = createRNSlider({
@@ -910,32 +904,24 @@
         }
     });
     
-    // Selection Tool functions
     function activateSelectionTool() {
-        // Deactivate all drawing tools
         if (typeof setDrawingTool === 'function') {
             finishDrawing();
             cancelDrawing();
             setDrawingTool(null);
         }
         
-        // Deactivate fill bucket tool
         if (typeof setFillBucketTool === 'function') {
             setFillBucketTool(false);
         }
-        
-        // Deactivate pen mode
         penMode = false;
         isEditingPolyline = false;
         isEditingPoint = false;
         
-        // Reset cursor
         canvas.style.cursor = 'default';
         
-        // Update UI
         selectionToolActive = true;
         
-        // Update button states
         const btnSelectionTool = document.getElementById('btnSelectionTool');
         const btnModeObject = document.getElementById('btnModeObject');
         const btnModeCanvas = document.getElementById('btnModeCanvas');
@@ -950,7 +936,6 @@
         if (btnBrush) btnBrush.classList.remove('mode-active');
         if (btnEraser) btnEraser.classList.remove('mode-active');
         
-        // Hide brush type selector
         const brushTypeSelector = document.getElementById('brushTypeSelector');
         if (brushTypeSelector) brushTypeSelector.style.display = 'none';
     }
@@ -961,11 +946,9 @@
         if (btnSelectionTool) btnSelectionTool.classList.remove('mode-active');
     }
     
-    // Update setMode function to work with selection tool
     const originalSetMode = setMode;
     setMode = function(mode) {
         if (mode === 'object') {
-            // When switching to object mode, activate selection tool
             activateSelectionTool();
         } else if (mode === 'canvas') {
             deactivateSelectionTool();
@@ -973,7 +956,6 @@
         if (originalSetMode) originalSetMode(mode);
     };
     
-    // Add selection tool button event listener
     const btnSelectionTool = document.getElementById('btnSelectionTool');
     if (btnSelectionTool) {
         btnSelectionTool.addEventListener('click', () => {
