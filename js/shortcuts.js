@@ -58,7 +58,6 @@ document.addEventListener('keydown', (e) => {
     const isShift = e.shiftKey;
     const isAlt = e.altKey;
     
-    // ========== UNDO / REDO (Highest Priority) ==========
     if (isCtrl && e.key === 'z' && !isShift) {
         e.preventDefault();
         e.stopPropagation();
@@ -81,7 +80,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // ========== DELETE ==========
     if (e.key === 'Delete' || e.key === 'Del') {
         e.preventDefault();
         e.stopPropagation();
@@ -105,7 +103,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // ========== ROTATION (Ctrl + Arrow Keys) ==========
     if (isCtrl && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
         e.preventDefault();
         e.stopPropagation();
@@ -130,7 +127,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // ========== MOVE (Arrow Keys) ==========
     const moveStep = isShift ? 10 : 1;
     let moved = false;
     
@@ -198,7 +194,6 @@ document.addEventListener('keydown', (e) => {
         }
     }
     
-    // ========== COPY, CUT, PASTE, DUPLICATE ==========
     if (isCtrl && e.key === 'c') {
         e.preventDefault();
         e.stopPropagation();
@@ -227,7 +222,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // ========== EDIT PROPERTIES ==========
     if (isCtrl && e.key === 'e') {
         e.preventDefault();
         e.stopPropagation();
@@ -239,7 +233,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // ========== GROUP / UNGROUP ==========
     if (isCtrl && e.key === 'g' && !isShift) {
         e.preventDefault();
         e.stopPropagation();
@@ -254,7 +247,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // ========== SELECT ALL ==========
     if (isCtrl && e.key === 'a') {
         e.preventDefault();
         e.stopPropagation();
@@ -262,7 +254,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // ========== ESCAPE ==========
     if (e.key === 'Escape') {
         e.preventDefault();
         e.stopPropagation();
@@ -276,7 +267,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // ========== PLAYBACK CONTROLS ==========
     if (e.key === ' ' || e.key === 'Space') {
         e.preventDefault();
         e.stopPropagation();
@@ -302,7 +292,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // ========== ZOOM CONTROLS (Canvas Mode) ==========
     if (isCtrl && (e.key === '+' || e.key === '=')) {
         e.preventDefault();
         e.stopPropagation();
@@ -346,7 +335,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // ========== TOOL SHORTCUTS ==========
     if (e.key === 'p' && !isCtrl && !isAlt) {
         e.preventDefault();
         e.stopPropagation();
@@ -412,7 +400,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // ========== IMPORT PROJECT ==========
     if (isCtrl && e.key === 'o') {
         e.preventDefault();
         e.stopPropagation();
@@ -420,8 +407,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // ========== LAYER ORDER SHORTCUTS ==========
-    // Ctrl + Shift + ] - Bring to Front
     if (isCtrl && isShift && e.key === ']') {
         e.preventDefault();
         e.stopPropagation();
@@ -449,7 +434,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // Ctrl + Shift + [ - Send to Back
     if (isCtrl && isShift && e.key === '[') {
         e.preventDefault();
         e.stopPropagation();
@@ -463,7 +447,6 @@ document.addEventListener('keydown', (e) => {
                 showToast("Send to Back", 'I');
             }
         } else if (selectedShapes && selectedShapes.length > 0) {
-            // Move to back in reverse order to maintain relative order
             const shapesToMove = [...selectedShapes];
             shapesToMove.reverse().forEach(shape => {
                 const oldIndex = shapes.indexOf(shape);
@@ -479,8 +462,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // ========== BRING FORWARD / SEND BACKWARD (Single step) ==========
-    // Ctrl + ] - Bring Forward (one step)
     if (isCtrl && !isShift && e.key === ']') {
         e.preventDefault();
         e.stopPropagation();
@@ -497,7 +478,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // Ctrl + [ - Send Backward (one step)
     if (isCtrl && !isShift && e.key === '[') {
         e.preventDefault();
         e.stopPropagation();
@@ -514,8 +494,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // ========== LOCK / UNLOCK OBJECT ==========
-    // Ctrl + L - Lock selected object
     if (isCtrl && e.key === 'l') {
         e.preventDefault();
         e.stopPropagation();
@@ -534,8 +512,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // ========== HIDE / SHOW OBJECT ==========
-    // Ctrl + H - Hide selected object
     if (isCtrl && e.key === 'h') {
         e.preventDefault();
         e.stopPropagation();
@@ -547,8 +523,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // ========== CENTER SELECTED OBJECT ==========
-    // Ctrl + Shift + C - Center selected object on canvas
     if (isCtrl && isShift && e.key === 'c') {
         e.preventDefault();
         e.stopPropagation();
@@ -561,8 +535,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // ========== RESET TRANSFORM ==========
-    // Ctrl + R - Reset transform (rotation, scale, skew)
     if (isCtrl && e.key === 'r') {
         e.preventDefault();
         e.stopPropagation();
@@ -580,8 +552,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // ========== FLIP HORIZONTAL ==========
-    // Ctrl + Shift + H - Flip horizontal
     if (isCtrl && isShift && e.key === 'h') {
         e.preventDefault();
         e.stopPropagation();
@@ -593,8 +563,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // ========== FLIP VERTICAL ==========
-    // Ctrl + Shift + V - Flip vertical
     if (isCtrl && isShift && e.key === 'v') {
         e.preventDefault();
         e.stopPropagation();
@@ -606,15 +574,11 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // ========== TOGGLE GRID ==========
-    // Ctrl + G - Toggle grid (if you have grid feature)
     if (isCtrl && e.key === 'g' && !isShift) {
         // This is already used for grouping, so use different key
         // Skip to avoid conflict
     }
     
-    // ========== EXPORT SHORTCUT ==========
-    // Ctrl + Shift + E - Export
     if (isCtrl && isShift && e.key === 'e') {
         e.preventDefault();
         e.stopPropagation();
@@ -623,8 +587,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // ========== NEW PROJECT ==========
-    // Ctrl + Shift + N - New project (clear all)
     if (isCtrl && isShift && e.key === 'n') {
         e.preventDefault();
         e.stopPropagation();
@@ -646,8 +608,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // ========== PREVIEW FULLSCREEN ==========
-    // F11 or Ctrl + Shift + F - Fullscreen preview
     if ((e.key === 'F11') || (isCtrl && isShift && e.key === 'f')) {
         e.preventDefault();
         e.stopPropagation();
@@ -659,8 +619,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
 });
-
-// ========== COPY, CUT, PASTE FUNCTIONS ==========
 
 let copiedShapes = [];
 
@@ -814,20 +772,17 @@ function duplicateSelectedShapes() {
     rebuildTracks();
 }
 
-// Select all shapes function
 function selectAllShapes() {
     if (shapes.length === 0) {
         showToast("No objects to select", 'I');
         return;
     }
     
-    // Clear current selection
     for (let shape of shapes) {
         shape.selected = false;
     }
     selectedShapes = [];
     
-    // Select all shapes
     for (let shape of shapes) {
         shape.selected = true;
         selectedShapes.push(shape);
