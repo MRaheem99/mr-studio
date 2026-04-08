@@ -77,7 +77,6 @@ Whether you're a professional animator, motion graphics designer, or hobbyist, M
 
 | Shortcut | Action |
 |----------|--------|
-
 | **Arrow Keys** | Move selected object by 1px |
 | **Shift + Arrow Keys** | Move selected object by 10px |
 | **Ctrl + Arrow Keys** | Rotate by 5째 |
