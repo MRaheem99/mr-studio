@@ -135,7 +135,7 @@ Whether you're a professional animator, motion graphics designer, or hobbyist, M
 
 ### Installation
 
-```bash
+bash
 # Clone the repository
 git clone https://github.com/MRaheem99/mr-studio.git
 
@@ -175,7 +175,7 @@ Group - Press Ctrl+G to group
 
 Transform group - Use handles to transform entire group
 
-Ungroup - Select group and press Ctrl+Shift+G```
+Ungroup - Select group and press Ctrl+Shift+G
 
 
 ### 🛠️ Technology Stack
