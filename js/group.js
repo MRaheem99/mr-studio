@@ -47,7 +47,6 @@ class Group {
                 childMaxY = childBounds.maxY;
             } 
             else if(child.type === "drawing" && child.strokesData) {
-                // For drawing shapes, calculate bounds from strokesData points
                 let drawingMinX = Infinity, drawingMaxX = -Infinity, 
                     drawingMinY = Infinity, drawingMaxY = -Infinity;
                 
@@ -60,7 +59,6 @@ class Group {
                     }
                 }
                 
-                // If no points found, use default size
                 if(drawingMinX === Infinity) {
                     childMinX = child.x - 50;
                     childMaxX = child.x + 50;
@@ -74,7 +72,6 @@ class Group {
                 }
             }
             else {
-                // For regular shapes
                 const halfSize = child.size / 2;
                 childMinX = child.x - halfSize;
                 childMaxX = child.x + halfSize;
@@ -109,7 +106,6 @@ class Group {
                 childBounds = child.getBounds();
             } 
             else if (child.type === "drawing" && child.strokesData) {
-                // For drawing shapes, calculate bounds from strokesData in world coordinates
                 let drawingMinX = Infinity, drawingMaxX = -Infinity, 
                     drawingMinY = Infinity, drawingMaxY = -Infinity;
                 
@@ -131,7 +127,6 @@ class Group {
                 };
             } 
             else {
-                // For regular shapes
                 const halfSize = child.size / 2;
                 const corners = [
                     child.localToWorld(-halfSize, -halfSize),
