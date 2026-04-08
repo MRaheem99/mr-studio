@@ -1,5 +1,3 @@
-// fill-bucket.js
-
 let previewCircle = null;
 
 function setFillBucketTool(active) {
@@ -123,7 +121,6 @@ function fillAtPosition(e) {
     for(let i = shapes.length - 1; i >= 0; i--) {
         const shape = shapes[i];
         
-        // For drawing shapes (using strokesData)
         if(shape.type === 'drawing' && shape.strokesData) {
             console.log("Checking drawing shape:", shape);
             console.log("Strokes data length:", shape.strokesData.length);
@@ -134,7 +131,6 @@ function fillAtPosition(e) {
                 console.log(`Stroke ${s} points count:`, points.length);
                 
                 if(points.length >= 3) {
-                    // Get first and last points in world coordinates
                     const firstWorld = shape.localToWorld(points[0].x, points[0].y);
                     const lastWorld = shape.localToWorld(points[points.length - 1].x, points[points.length - 1].y);
                     const distance = Math.hypot(firstWorld.x - lastWorld.x, firstWorld.y - lastWorld.y);
@@ -194,8 +190,6 @@ function fillDrawingShape(shape, color, clickPoint) {
     }
     
     let filled = false;
-    
-    // Initialize fill colors array
     if(!shape.strokeFillColors) {
         shape.strokeFillColors = [];
     }
