@@ -439,7 +439,6 @@ class Shape {
     ctx.rotate(this.rotation);
     ctx.transform(this.scaleX, Math.tan(this.skewY), Math.tan(this.skewX), this.scaleY, 0, 0);
     
-    // FIRST: Draw fills for closed strokes
     if(this.strokeFillColors) {
         for(let i = 0; i < this.strokesData.length; i++) {
             const stroke = this.strokesData[i];
@@ -447,7 +446,6 @@ class Shape {
             const fillColorValue = this.strokeFillColors[i];
             
             if(fillColorValue && points.length >= 3) {
-                // Check if stroke is closed
                 const first = points[0];
                 const last = points[points.length - 1];
                 const isClosed = Math.hypot(first.x - last.x, first.y - last.y) < 15;
@@ -465,8 +463,6 @@ class Shape {
             }
         }
     }
-    
-    // SECOND: Draw strokes (outlines)
     for(let stroke of this.strokesData) {
         drawStroke(ctx, stroke.points, stroke.width, stroke.color, stroke.opacity, 
                    stroke.brushType, stroke.taperStart, stroke.taperEnd);
@@ -483,7 +479,6 @@ class Shape {
             ctx.transform(this.scaleX, Math.tan(this.skewY), Math.tan(this.skewX), this.scaleY, 0, 0);
             ctx.globalAlpha = this.opacity;
             
-            // Draw shape (same as before, but NO handle drawing)
             if (this.type === 'drawing') {
                 this._drawDrawing(ctx);
             } else {
@@ -509,12 +504,11 @@ class Shape {
                 }
             }
             ctx.restore();
-            return;  // IMPORTANT: Skip handle drawing
+            return; 
         }
         if(this.type === 'drawing') {
             this._drawDrawing(ctx);
             
-            // Show handles when selected
             if(this.selected && viewport.mode === 'object') {
                 this._drawPivotHandle(ctx);
                 this.drawHandles(ctx);
@@ -1011,13 +1005,11 @@ class Shape {
     isPointInside(px, py) {
         if (this.locked) return false;
         if (this.type === 'group') {
-            // First check if clicking on any child shape
             for (let child of this.children) {
                 if (child.isPointInside(px, py)) {
                     return true;
                 }
             }
-            // Then check group bounds
             const local = this.worldToLocal(px, py);
             const bounds = this.getLocalBounds();
             const padding = 20;
@@ -1032,11 +1024,8 @@ class Shape {
                 for(let i = 0; i < stroke.points.length - 1; i++) {
                     const p1 = stroke.points[i];
                     const p2 = stroke.points[i + 1];
-                    
-                    // Convert local points to world coordinates
                     const wp1 = this.localToWorld(p1.x, p1.y);
                     const wp2 = this.localToWorld(p2.x, p2.y);
-                    
                     const dx = wp2.x - wp1.x;
                     const dy = wp2.y - wp1.y;
                     const len = Math.hypot(dx, dy);
@@ -1060,7 +1049,6 @@ class Shape {
                 }
             }
             
-            // Also check bounding box for easier selection
             let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
             for(let stroke of this.strokesData) {
                 for(let p of stroke.points) {
