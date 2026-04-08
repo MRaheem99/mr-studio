@@ -3,7 +3,6 @@ function rebuildTracks() {
     timelineTracks.innerHTML = "";
     
     function buildTrackItem(obj, depth = 0) {
-        // Skip if object is inside a group (parentGroup exists)
         if (obj.parentGroup) {
             return;
         }
@@ -12,7 +11,6 @@ function rebuildTracks() {
         label.className = "track-label";
         label.style.paddingLeft = `${10 + depth * 20}px`;
         
-        // Check if this object is selected
         const isSelected = (obj === selectedShape) || (selectedShapes && selectedShapes.includes(obj));
         if (isSelected) {
             label.classList.add("active");
@@ -31,7 +29,6 @@ function rebuildTracks() {
             label.appendChild(toggle);
             label.appendChild(document.createTextNode(`${obj.name} (${obj.children.length})`));
         } else {
-            // Get display name for shape
             let displayName = obj.type;
             if (obj.type === 'text') {
                 displayName = `Text: "${obj.text.substring(0, 15)}${obj.text.length > 15 ? '...' : ''}"`;
@@ -59,13 +56,11 @@ function rebuildTracks() {
         label.onclick = (e) => {
             e.stopPropagation();
             
-            // Clear all selections first
             for (let shape of shapes) {
                 shape.selected = false;
             }
             selectedShapes = [];
             
-            // Select this object
             obj.selected = true;
             selectedShape = obj;
             selectedShapes = [obj];
@@ -96,7 +91,6 @@ function rebuildTracks() {
             if (e.ctrlKey || e.metaKey) return;
             if (e.target.classList.contains("keyframe")) return;
             
-            // Select this object when clicking on its track row
             for (let shape of shapes) {
                 shape.selected = false;
             }
@@ -117,7 +111,6 @@ function rebuildTracks() {
             drawAll();
             rebuildTracks();
             
-            // Then add keyframe
             const wrapperRect = timelineTracksWrapper.getBoundingClientRect();
             const mouseX = e.pageX - wrapperRect.left - window.scrollX;
             const timelineX = mouseX + timelineTracksWrapper.scrollLeft;
@@ -143,11 +136,9 @@ function rebuildTracks() {
             );
         });
         
-        // Touch support for row
         row.addEventListener("touchstart", (e) => {
             if (e.target.classList.contains("keyframe")) return;
             
-            // Select this object
             for (let shape of shapes) {
                 shape.selected = false;
             }
@@ -193,7 +184,6 @@ function rebuildTracks() {
             );
         });
         
-        // Add keyframes
         if (obj.keyframes) {
             obj.keyframes.forEach((kf, kfIndex) => {
                 const dot = document.createElement("div");
@@ -209,7 +199,6 @@ function rebuildTracks() {
                 dot.addEventListener("click", (e) => {
                     e.stopPropagation();
                     
-                    // Select this object first
                     for (let shape of shapes) {
                         shape.selected = false;
                     }
@@ -260,7 +249,6 @@ function rebuildTracks() {
             });
         }
         
-        // Recursively build children for groups (only if expanded)
         if (obj.type === "group" && obj.expanded && obj.children) {
             obj.children.forEach(child => buildTrackItem(child, depth + 1));
         }
