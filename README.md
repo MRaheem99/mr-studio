@@ -20,7 +20,7 @@
 
 ## 📖 About
 
-MR Studio is a powerful, browser-based animation tool that combines vector drawing, keyframe animation, and professional export features. Create stunning animations, draw freehand with multiple brush types, group objects, add keyframes with easing, and export to video or GIF - all without installing any software.
+MR Studio is a powerful free animation software, browser-based animation tool that combines vector drawing, keyframe animation, and professional export features. Create stunning animations, create cartoon animations, create animation videos for Youtube channel, draw freehand with multiple brush types, group objects, add keyframes with easing, and export to video or GIF - all without installing any software.
 
 Whether you're a professional animator, motion graphics designer, or hobbyist, MR Studio provides the tools you need to bring your ideas to life.
 
