@@ -75,54 +75,54 @@ Whether you're a professional animator, motion graphics designer, or hobbyist, M
 
 ### ⌨️ Keyboard Shortcuts
 
-| Shortcut |                            | Action |
+| Shortcut |                          | Action |
 |------------------------------------------------------------------|
 
-Arrow Keys	                            Move selected object by 1px
-Shift + Arrow Keys	                    Move selected object by 10px
-Ctrl + Arrow Keys	                    Rotate by 5째
-Ctrl + Shift + Arrow Keys	            Rotate by 15째
-Delete / Del	                        Delete selected object(s)
-Ctrl + C	                            Copy selected object(s)
-Ctrl + V	                            Paste copied object(s)
-Ctrl + X	                            Cut selected object(s)
-Ctrl + D	                            Duplicate selected object(s)
-Ctrl + E	                            Open Edit Properties modal
-Ctrl + G	                            Group selected objects
-Ctrl + Shift + G	                    Ungroup selected group
-Ctrl + A	                            Select all objects
-Ctrl + Z	                            Undo
-Ctrl + Y / Ctrl + Shift + Z	            Redo
-Ctrl + ]	                            Bring Forward (one step)
-Ctrl + [	                            Send Backward (one step)
-Ctrl + Shift + ]	                    Bring to Front
-Ctrl + Shift + [	                    Send to Back
-Ctrl + L	Lock/Unlock                 object
-Ctrl + H	Hide/Show                   object
-Ctrl + Shift + C	                    Center object on canvas
-Ctrl + R	                            Reset transform
-Ctrl + Shift + H	                    Flip Horizontal
-Ctrl + Shift + V	                    Flip Vertical
-Ctrl + Shift + E	                    Open Export dialog
-Ctrl + Shift + N	                    New Project
-Space	Play/Pause                      animation
-Home	                                Go to start of animation
-End	                                    Go to end of animation
-Escape	                                Clear selection
-P	                                    Pencil tool
-B	                                    Brush tool
-E	                                    Eraser tool
-V	                                    Object mode (Select)
-H	                                    Canvas mode (Pan)
-F	                                    Finish drawing
-N	                                    Add new shape
-T	                                    Add text
-I	                                    Import image
-Ctrl + O	                            Import project
-Ctrl + + / Ctrl + =	                    Zoom in (Canvas mode)
-Ctrl + -	                            Zoom out (Canvas mode)
-Ctrl + 0	                            Reset zoom (Canvas mode)
-F11 / Ctrl + Shift + F	                Fullscreen preview
+Arrow Keys	                          Move selected object by 1px<br />
+Shift + Arrow Keys	                  Move selected object by 10px<br />
+Ctrl + Arrow Keys	                    Rotate by 5째<br />
+Ctrl + Shift + Arrow Keys	            Rotate by 15째<br />
+Delete / Del	                        Delete selected object(s)<br />
+Ctrl + C	                            Copy selected object(s)<br />
+Ctrl + V	                            Paste copied object(s)<br />
+Ctrl + X	                            Cut selected object(s)<br />
+Ctrl + D	                            Duplicate selected object(s)<br />
+Ctrl + E	                            Open Edit Properties modal<br />
+Ctrl + G	                            Group selected objects<br />
+Ctrl + Shift + G	                    Ungroup selected group<br />
+Ctrl + A	                            Select all objects<br />
+Ctrl + Z	                            Undo<br />
+Ctrl + Y / Ctrl + Shift + Z	          Redo<br />
+Ctrl + ]	                            Bring Forward (one step)<br />
+Ctrl + [	                            Send Backward (one step)<br />
+Ctrl + Shift + ]	                    Bring to Front<br />
+Ctrl + Shift + [	                    Send to Back<br />
+Ctrl + L	Lock/Unlock                 object<br />
+Ctrl + H	Hide/Show                   object<br />
+Ctrl + Shift + C	                    Center object on canvas<br />
+Ctrl + R	                            Reset transform<br />
+Ctrl + Shift + H	                    Flip Horizontal<br />
+Ctrl + Shift + V	                    Flip Vertical<br />
+Ctrl + Shift + E	                    Open Export dialog<br />
+Ctrl + Shift + N	                    New Project<br />
+Space	Play/Pause                      animation<br />
+Home	                                Go to start of animation<br />
+End	                                  Go to end of animation<br />
+Escape	                              Clear selection<br />
+P	                                    Pencil tool<br />
+B	                                    Brush tool<br />
+E	                                    Eraser tool<br />
+V	                                    Object mode (Select)<br />
+H	                                    Canvas mode (Pan)<br />
+F	                                    Finish drawing<br />
+N	                                    Add new shape<br />
+T	                                    Add text<br />
+I	                                    Import image<br />
+Ctrl + O	                            Import project<br />
+Ctrl + + / Ctrl + =	                  Zoom in (Canvas mode)<br />
+Ctrl + -	                            Zoom out (Canvas mode)<br />
+Ctrl + 0	                            Reset zoom (Canvas mode)<br />
+F11 / Ctrl + Shift + F	              Fullscreen preview<br />
 
 ### 🎮 View Modes
 - **Object Mode** - Select and transform objects
