@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MR Studio</title>
+    <link href="./img/favicon.png" rel="icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <section class="animation-section">
+            <div id="animContainer">
+                <canvas id="mainCanvas"></canvas>
+                <canvas id="marqueeCanvas" style="position: absolute; top: 0; left: 0; pointer-events: none; display: none;"></canvas>
+            </div>
+            <div class="player-time" id="playerTime">
+                <div id="timeDisplay" style="margin-right:5px;">0.00s</div>
+                <div id="durationDisplay">/ 0.00s</div>
+            </div>
+            
+            <div id="timelineContainer">
+                <div id="timelineResizeHandle"></div>
+                <div id="trackHeader">
+                    <div class="playback-bar">
+                        <div class="">
+                            <button class="player-btn" id="btnPlay"><i class="fa-solid fa-play"></i></button>
+                            <button class="player-btn" id="btnPause"><i class="fa-solid fa-pause"></i></button>
+                            <button class="player-btn" id="btnStop"><i class="fa-solid fa-stop"></i></button>
+                        </div>
+                        <div>
+                            <button class="player-btn" id="btnUndo" title="Undo (Ctrl+Z)"><i class="fa-solid fa-rotate-left"></i></button>
+                            <button class="player-btn" id="btnRedo" title="Redo (Ctrl+Y)"><i class="fa-solid fa-rotate-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+                
+                <canvas id="timelineRuler"></canvas>
+                <div id="trackLabels"></div>
+                <div id="timelineTracksWrapper">
+                    <div id="timelineTracks"></div>
+                    <div id="timelinePlayhead"></div>
+                </div>
+            </div> 
+        </section>
+
+        <section class="operations-section">
+            <div class="menu-group" style="position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;background:#333;padding:5px;">
+                <div style="display:flex;gap:6px;"><img src="./img/mrstudiologo_128.png" style="width:28px;height:28px;"/> <h1 style="font-size:18px;">MR STUDIO</h1></div>
+                <div>
+                    <button class="icon-btn" id="btnHelp" title="Help" style="margin-bottom:0;"><i class="fa-solid fa-circle-question"></i></button>
+                    <button class="icon-btn" id="btnAbout" title="About" style="margin-bottom:0;"><i class="fa-solid fa-info-circle"></i></button>
+                </div>
+            </div>
+            <h2><i class="fa-solid fa-sliders"></i> Controls</h2>
+
+            <div class="menu-group">
+                <span class="form-label">View Mode</span>
+                <button class="icon-btn mode-active" id="btnModeObject" title="Object Mode"><i class="fas fa-hand-point-up"></i></button>
+                <button class="icon-btn" id="btnModeCanvas" title="Canvas Mode"><i class="fa-solid fa-hand-paper"></i></button>
+                <button class="icon-btn" id="btnToggleHandles" title="Toggle Handles"><i class="fa-solid fa-eye"></i></button>
+            </div>
+            <div class="menu-group">
+                <span class="form-label">Scene & Tools</span>
+                <button class="icon-btn" id="btnSelectionTool" title="Selection Tool (V)"><i class="fa-solid fa-arrow-pointer"></i></button>
+                <button class="icon-btn" id="btnObjectsList" title="Objects List"><i class="fa-solid fa-list"></i></button>
+                <button class="icon-btn" id="btnSettings" title="Project Settings"><i class="fa-solid fa-gear"></i></button>
+                <button class="icon-btn" id="btnAddShape" title="Add Shape"><i class="fa-solid fa-shapes"></i></button>
+                <button class="icon-btn" id="btnAddText" title="Add Text"><i class="fa-solid fa-font"></i></button>
+                <button class="icon-btn" id="btnAddImage" title="Import Image"><i class="fa-regular fa-image"></i></button>
+            </div>
+            <div class="menu-group">
+                <span class="form-label">Group Tools</span>
+                <button class="icon-btn" id="btnGroup" title="Group Selected"><i class="fa-solid fa-layer-group"></i></button>
+                <button class="icon-btn" id="btnUngroup" title="Ungroup"><i class="fa-solid fa-object-ungroup"></i></button>
+            </div>
+            
+            <div class="menu-group">
+                <span class="form-label">Drawing Tools</span>
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <button class="icon-btn" id="btnPencil" title="Pencil Tool"><i class="fa-solid fa-pencil"></i></button>
+                    <button class="icon-btn" id="btnBrush" title="Brush Tool"><i class="fa-solid fa-paintbrush"></i></button>
+                    <button class="icon-btn" id="btnEraser" title="Eraser Tool"><i class="fa-solid fa-eraser"></i></button>
+                    <button class="icon-btn" id="btnFinishDrawing" title="Finish Drawing"><i class="fa-solid fa-check"></i></button>
+                    <button class="icon-btn" id="btnCancelDrawing" title="Cancel Drawing"><i class="fa-solid fa-xmark"></i></button>
+                    <button class="icon-btn" id="btnFillBucket" title="Fill Bucket Tool"><i class="fa-solid fa-fill-drip"></i></button>
+                </div>
+                <div class="form-group" id="brushTypeSelector" style="display:none;">
+                    <label class="tool-label">Brush Type</label>
+                    <div class="select-wrapper">
+                        <select id="brushTypeSelect">
+                            <optgroup label="Basic">
+                                <option value="solid">Solid Brush</option>
+                                <option value="tapered">Tapered Brush</option>
+                            </optgroup>
+                            <optgroup label="Pattern">
+                                <option value="dotted">Dotted Brush</option>
+                                <option value="dashed">Dashed Brush</option>
+                            </optgroup>
+                            <optgroup label="Effect">
+                                <option value="wavy">Wavy Brush</option>
+                                <option value="zigzag">Zigzag Brush</option>
+                                <option value="glow">Glow Brush</option>
+                                <option value="gradient">Gradient Brush</option>
+                                <option value="texture">Texture Brush</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group" id="brushSpacingContainer" style="display:none;">
+                    <label class="tool-label">Brush Spacing</label>
+                    <div id="brushSpacingSlider"></div>
+                </div>
+                <div class="form-group" id="glowIntensityContainer" style="display:none;">
+                    <label class="tool-label">Glow Intensity</label>
+                    <div id="glowIntensitySlider"></div>
+                </div>
+                
+                <div class="form-group" id="taperSettingsContainer" style="display:none;">
+                    <label class="tool-label">Taper Settings</label>
+                    <div class="tool-group">
+                        <label class="tool-label">Start Width</label>
+                        <div id="minTaperWidthSlider"></div>
+                    </div>
+                    <div class="tool-group">
+                        <label class="form-label">End Width</label>
+                        <div id="maxTaperWidthSlider"></div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="display: flex; gap: 15px; margin-bottom: 10px;">
+                    <div class="">
+                        <label class="tool-label">Stroke Color</label>
+                        <input type="color" id="strokeColorPicker" value="#00d4ff">
+                    </div>
+                    <div class="">
+                        <label class="tool-label">Fill Color</label>
+                        <input type="color" id="fillColorPicker" value="#00d4ff">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="tool-label">Stroke Width</label>
+                    <div id="strokeWidthContainer"></div>
+                </div>
+                <div class="form-group">
+                    <label class="tool-label">Stroke Opacity</label>
+                    <div id="strokeOpacityContainer"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Stroke Hardness</label>
+                    <div id="strokeHardnessContainer"></div>
+                </div>
+                <div class="form-group" id="eraserSizeContainer">
+                    <label class="tool-label">Eraser Size</label>
+                    <div id="eraserSizeSlider"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="tool-label">Stroke Stabilization</label>
+                    <div id="stabilizationSliderContainer"></div>
+                    
+                    <div class="form-row">
+                        <label class="tool-label" style="display: inline-block; margin-right: 10px;">Smoothing:</label>
+                        <select id="smoothingSelect" style="flex:1;">
+                            <option value="weighted">Weighted Average</option>
+                            <option value="simple">Simple Average</option>
+                            <option value="chaikin">Chaikin Smooth</option>
+                            <option value="rdp">RDP Simplify</option>
+                        </select>
+                    </div>
+                    <small style="font-size: 0.7rem; color: #888;">Higher values = smoother but more delay</small>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <input type="file" id="imageInput" accept="image/*" style="display: none;">
+    <input type="file" id="importFileInput" accept=".json" style="display: none;">
+
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-content">
+            <div class="popup-header">
+                <span class="popup-title">Project Settings</span>
+                <button class="close-popup-btn" id="closeSettingsBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="popup-body">
+                <div class="form-group">
+                    <label class="form-label">Project Name</label>
+                    <input type="text" id="projName" value="My Animation">
+                </div>
+                <div class="form-row">
+                    <div style="flex:1"><label class="form-label">Width (px)</label><input type="number" id="projWidth" value="800"></div>
+                    <div style="flex:1"><label class="form-label">Height (px)</label><input type="number" id="projHeight" value="600"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Background</label>
+                    <div class="form-row">
+                        <input type="color" id="projBgColor" value="#0fff0f">
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="projTransparent"> Transparent</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Animation Timing</label>
+                    <div class="form-row">
+                        <div style="flex:1">
+                            <label class="form-label" style="font-size:0.7rem">Keyframe Step (seconds)</label>
+                            <input type="number" id="animStep" value="1.0" step="0.1">
+                        </div>
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                            <input type="checkbox" id="animInterpolate" checked> Smooth Interpolate
+                        </label>
+                    </div>
+                    <div style="font-size: 0.75rem; color: #666; margin-top: 5px;">
+                        * Duration = (Max Keyframes - 1) × Step
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="form-group">
+                        <label class="form-label">Easing Type</label>
+                        <div class="select-wrapper">
+                            <select id="easingSelect">
+                                <optgroup label="Basic">
+                                    <option value="linear">Linear</option>
+                                </optgroup>
+                                <optgroup label="Quadratic">
+                                    <option value="easeInQuad">Ease In Quad</option>
+                                    <option value="easeOutQuad">Ease Out Quad</option>
+                                    <option value="easeInOutQuad">Ease In Out Quad</option>
+                                </optgroup>
+                                <optgroup label="Cubic">
+                                    <option value="easeInCubic">Ease In Cubic</option>
+                                    <option value="easeOutCubic">Ease Out Cubic</option>
+                                    <option value="easeInOutCubic">Ease In Out Cubic</option>
+                                </optgroup>
+                                <optgroup label="Back">
+                                    <option value="easeInBack">Ease In Back</option>
+                                    <option value="easeOutBack">Ease Out Back</option>
+                                    <option value="easeInOutBack">Ease In Out Back</option>
+                                </optgroup>
+                                <optgroup label="Special">
+                                    <option value="bounce">Bounce</option>
+                                    <option value="elastic">Elastic</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <button class="icon-btn" id="btnImportProject" title="Import Project"><i class="fa-solid fa-folder-open"></i> Import</button>
+                <button class="action-btn btn-primary" id="btnExportAdvanced" style="margin-top: 10px;">
+    				<i class="fa-solid fa-video"></i> Export
+				</button>
+				<div id="exportStatus" style="font-size: 0.8rem; color: var(--accent); margin-top: 5px; text-align: center; display: none;">
+    				Exporting... Please wait.
+				</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="shapeModal">
+        <div class="modal-content">
+            <div class="popup-header">
+                <span class="popup-title">Select Shape</span>
+                <button class="close-popup-btn" id="closeShapeModalBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="popup-body">
+                <div class="shape-grid">
+                    <div class="shape-option" data-shape="square"><img src="img/icons/square-36.png" class="icon-24"/></div>
+                    <div class="shape-option" data-shape="circle"><img src="img/icons/circle-36.png" class="icon-24"/></div>
+                    <div class="shape-option" data-shape="triangle"><img src="img/icons/triangle-36.png" class="icon-24"/></div>
+                    <div class="shape-option" data-shape="line"><img src="img/icons/line-36.png" class="icon-24"/></div>
+                    <div class="shape-option" data-shape="pentagon"><img src="img/icons/pentagon-36.png" class="icon-24"/></div>
+                    <div class="shape-option" data-shape="star"><img src="img/icons/star-36.png" class="icon-24"/></div>
+                    <div class="shape-option" data-shape="arrow"><img src="img/icons/arrow-36.png" class="icon-24"/></div>
+                    <div class="shape-option" data-shape="polygon"><img src="img/icons/polygon-36.png" class="icon-24"/></div>
+                    <div class="shape-option" data-shape="polyline"><img src="img/icons/polyline-36.png" class="icon-24"/></div>
+                    <div class="shape-option" data-shape="path"><img src="img/icons/pen-tool-36.png" class="icon-24"/></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="manipulateModal">
+        <div class="modal-content">
+            <div class="popup-header">
+                <span class="popup-title" id="manipulateTitle">Edit</span>
+                <div style="display:flex; gap:8px; align-items:center; justify-content:space-between;">
+                <button class="close-popup-btn" id="btnUpdateKeyframe" title="Save Changes to Keyframe" style="display:none; background: rgba(0, 212, 255, 0.2); border-color: var(--accent); color: var(--accent);">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                </button>
+                <button class="close-popup-btn" id="closeManipulateBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            </div>
+            <div class="popup-body">
+                <div class="form-group" style="display:none;" id="textInputGroup">
+                    <div class="section-title">Text Tools</div>
+                    <label class="form-label">Text Content</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="textInput" value="Hello">
+                        <button class="icon-btn" id="btnUpdateText" style="width:auto; padding:0 15px;"><i class="fa-solid fa-check"></i></button>
+                    </div>
+                    <div class="form-group"><label class="form-label">Font Size</label><div id="fontSizeContainer"></div></div>
+                    <div class="form-group">
+                        <label class="form-label">Font Family</label>
+                        <select id="fontFamilySelect"><option value="Arial">Arial</option>
+                            <option value="Times New Roman">Times New Roman</option>
+                            <option value="Courier New">Courier New</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group" style="display:none;" id="imageInputGroup">
+                    <div class="section-title">Image Tools</div>
+                    <div class="form-group"><label class="form-label">Brightness</label><div id="imgBrightnessContainer"></div></div>
+                    <div class="form-group"><label class="form-label">Contrast</label><div id="imgContrastContainer"></div></div>
+                    <div class="form-group"><label class="form-label">Saturation</label><div id="imgSaturationContainer"></div></div>
+                    <div class="form-group"><label class="form-label">Blur</label><div id="imgBlurContainer"></div></div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="section-title">Colors</div>
+                    <div class="form-row" style="display:flex;justify-content:space-between;">
+                        <div style="display:flex; flex-direction:column; align-items:center; gap:5px;"><span style="font-size:0.7rem; color:var(--text-muted)">Fill</span><input type="color" id="shapeColor" value="#00d4ff"></div>
+                        <div style="display:flex; flex-direction:column; align-items:center; gap:5px;"><span style="font-size:0.7rem; color:var(--text-muted)">Border</span><input type="color" id="shapeBorderColor" value="#ffffff"></div>
+                        <div style="display:flex; flex-direction:column; align-items:center; gap:5px;"><span style="font-size:0.7rem; color:var(--text-muted)">Shadow</span><input type="color" id="shadowColor" value="#000000"></div>
+                        <input type="file" id="shapeImageInput" accept="image/*" style="display:none;">
+                        <div style="display:flex; flex-direction:column; align-items:center; gap:5px;"><span style="font-size:0.7rem; color:var(--text-muted);padding-top:7px;">Image</span><button class="icon-btn" id="shapeImageBtn"><i class="fa-regular fa-image"></i></button></div>
+                        <div style="display:flex; flex-direction:column; align-items:center; gap:5px;"><span style="font-size:0.7rem; color:var(--text-muted);padding-top:7px;">Remove Image</span><button class="icon-btn" id="removeFillImage"><i class="fa-regular fa-image" style="color:red;"></i></button></div>
+                    </div>
+                </div>
+                <div class="section-title">Transform</div>
+                <div class="form-group"><label class="form-label">BG Offset X</label><div id="imgOffsetXContainer"></div></div>
+                <div class="form-group"><label class="form-label">BG Offset Y</label><div id="imgOffsetYContainer"></div></div>
+                <div class="form-group"><label class="form-label">BG Scale</label><div id="imgScaleContainer"></div></div>
+                <div class="form-group"><label class="form-label">Skew X</label><div id="skewXContainer"></div></div>
+                <div class="form-group"><label class="form-label">Skew Y</label><div id="skewYContainer"></div></div>
+                <div class="form-group"><label class="form-label">Opacity</label><div id="opacityContainer"></div></div>
+                <div class="form-group"><label class="form-label">Rotation (Degrees)</label><div id="rotationContainer"></div></div>
+                <div class="section-title">Border</div>
+                <div class="form-group"><label class="form-label">Width</label><div id="borderWidthContainer"></div></div>
+                <div class="form-group"><label class="form-label">Offset</label><div id="borderOffsetContainer"></div></div>
+                <div class="form-group"><label class="form-label">Blur</label><div id="borderBlurContainer"></div></div>
+                <div class="section-title">Shadow</div>
+                <div class="form-group"><label class="form-label">Blur</label><div id="shadowBlurContainer"></div></div>
+                <div class="form-group"><label class="form-label">Offset X</label><div id="shadowOffsetXContainer"></div></div>
+                <div class="form-group"><label class="form-label">Offset Y</label><div id="shadowOffsetYContainer"></div></div>
+                <div class="form-group"><label class="form-label">Opacity</label><div id="shadowOpacityContainer"></div></div>
+                
+                <div class="section-title">Pivot Point</div>
+                <div class="form-group"><label class="form-label">Pivot X (Local)</label><div id="pivotXContainer"></div></div>
+                <div class="form-group"><label class="form-label">Pivot Y (Local)</label><div id="pivotYContainer"></div></div>
+                
+                <div class="section-title">Polygon Settings</div>
+                <div class="form-group"><label class="form-label">Points</label><div id="polygonSidesContainer"></div></div>
+                
+                <div class="form-group" id="polylineOptionsGroup" style="display:none; margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
+                    <label class="form-label">Polyline/Path Options</label>
+                    
+                    <button class="action-btn" id="btnCloseShape">
+                        <i class="fa-solid fa-link"></i> Connect Points & Close Shape
+                    </button>
+                    <button class="action-btn" id="btnOpenShape" style="margin-top: 8px;">
+                        <i class="fa-solid fa-link-slash"></i> Disconnect Points & Open Shape
+                    </button>
+                    
+                    <button class="action-btn" id="btnFinishShape" style="width: 100%; background: rgba(46, 184, 46, 0.1); border-color: #2eb82e; color: #2eb82e;">
+                        <i class="fa-solid fa-check"></i> Finish Drawing (Convert to Shape)
+                    </button>
+                    
+                    <button class="action-btn" id="btnReEditShape" style="width: 100%; background: rgba(0, 212, 255, 0.1); border-color: var(--accent); color: var(--accent); display: none;">
+                        <i class="fa-solid fa-pen"></i> Re-Edit Points
+                    </button>
+                    
+                    <div id="finishHint" style="display:none; font-size: 0.75rem; color: #888; margin-top: 8px; text-align: center;"></div>
+                </div>
+                
+                <div class="form-group" id="smoothCornersGroup" style="display:none; margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
+                    <label class="form-label">Corner Smoothing</label>
+                    <button class="action-btn" id="btnSmoothCorners" style="width: 100%;">
+                        <i class="fa-solid fa-wave-square"></i> Apply Smooth Corners
+                    </button>
+                    <button class="action-btn" id="btnCancelSmooth" style="width: 100%; margin-top: 8px; background: transparent; border: 1px solid #666;">
+                        <i class="fa-solid fa-rotate-left"></i> Cancel Preview
+                    </button>
+                    <div id="smoothnessSliderContainer" style="margin-top: 10px;"></div>
+                    <div style="font-size: 0.7rem; color: #666; margin-top: 5px; text-align: center;">
+                        💡 Adjust slider for live preview, click Apply to confirm
+                    </div>
+                </div>
+                
+                <div class="form-group" id="closeShapeGroup" style="display:none; margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
+                    <label class="form-label">Close Shape</label>
+                    <button class="action-btn" id="btnCloseShape" style="width: 100%;">
+                        <i class="fa-solid fa-link"></i> Connect First & Last Points
+                    </button>
+                    <button class="action-btn" id="btnOpenShape" style="width: 100%; margin-top: 8px; display: none;">
+                        <i class="fa-solid fa-link-slash"></i> Disconnect Points
+                    </button>
+                </div>
+                
+                <div class="btn-grid">
+                    <button class="action-btn" id="btnResetPivot"><i class="fa-solid fa-rotate-left"></i> Reset Pivot</button>
+                    <button class="action-btn" id="btnBringFront"><i class="fa-solid fa-layer-group"></i> Front</button>
+                    <button class="action-btn" id="btnSendBack"><i class="fa-solid fa-layer-group" style="transform: scaleY(-1);"></i> Back</button>
+                    <button class="action-btn" id="btnCopy"><i class="fa-regular fa-copy"></i> Copy</button>
+                    <button class="action-btn btn-danger" id="btnRemove"><i class="fa-solid fa-trash"></i> Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="objectsListModal">
+        <div class="modal-content">
+            <div class="popup-header">
+                <span class="popup-title">Scene Objects</span>
+                <button class="close-popup-btn" id="closeObjListBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="popup-body" id="objectsListContainer"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="objectManageModal">
+        <div class="modal-content">
+            <div class="popup-header">
+                <span class="popup-title">Animation Keyframes</span>
+                <button class="close-popup-btn" id="closeObjManageBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="popup-body">
+                <button class="action-btn btn-primary" id="btnAddKeyframe" style="margin-bottom: 15px;">
+                    <i class="fa-solid fa-plus"></i> Add Next Keyframe
+                </button>
+                
+                <div id="kfEditBar" style="display:none; margin-bottom: 15px; background: rgba(0, 212, 255, 0.1); padding: 10px; border-radius: 8px; border: 1px solid var(--accent);">
+                    <p style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 8px;">
+                        Editing Keyframe at <span id="kfEditTime" style="color: var(--accent); font-weight: bold;">0.00s</span>
+                    </p>
+                    <button class="action-btn btn-primary" id="btnOpenEditModal" style="width: 100%; font-size: 0.9rem;">
+                        <i class="fa-solid fa-pen-to-square"></i> Edit Properties
+                    </button>
+                    <button class="action-btn" id="btnCancelEdit" style="width: 100%; font-size: 0.9rem; margin-top: 5px; background: transparent; border: 1px solid #666;">
+                        Cancel
+                    </button>
+                </div>
+                <div class="section-title">Keyframe List</div>
+                <div id="keyframeList"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="exportModal">
+        <div class="modal-content" style="width: 400px; max-width: 90%;">
+            <div class="popup-header">
+                <span class="popup-title">Export Animation</span>
+                <button class="close-popup-btn" id="closeExportBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="popup-body">
+                <div class="form-group">
+                    <label class="form-label">Export Format</label>
+                    <select id="exportFormat">
+                        <option value="webm">WebM (Video)</option>
+                        <option value="mp4">MP4 (Video)</option>
+                        <option value="gif">GIF (Animated)</option>
+                        <option value="png">PNG Sequence</option>
+                        <option value="json">Project JSON</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Quality</label>
+                    <div id="exportQualitySlider"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Frame Rate (FPS)</label>
+                    <select id="exportFPS">
+                        <option value="15">15 FPS</option>
+                        <option value="24">24 FPS</option>
+                        <option value="30" selected>30 FPS</option>
+                        <option value="60">60 FPS</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Resolution</label>
+                    <select id="exportResolution">
+                        <option value="original">Original Size</option>
+                        <option value="720p">720p (1280x720)</option>
+                        <option value="1080p">1080p (1920x1080)</option>
+                        <option value="4k">4K (3840x2160)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <input type="checkbox" id="exportTransparent" checked> Transparent Background
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <input type="checkbox" id="exportLoop"> Loop Animation
+                    </label>
+                </div>
+                
+                <div id="frameCounter" style="font-size: 0.7rem; color: var(--accent); text-align: center; margin-top: 5px;"></div>
+                
+                <div id="exportProgressContainer" style="display: none;">
+                    <div class="progress-bar-container" style="background: #333; border-radius: 10px; height: 20px; margin: 10px 0;">
+                        <div id="exportProgressBar" style="width: 0%; background: var(--accent); border-radius: 10px; height: 100%; transition: width 0.3s;"></div>
+                    </div>
+                    <div id="exportProgressText" style="text-align: center; font-size: 0.8rem; color: var(--text-muted);">Preparing...</div>
+                </div>
+                
+                <div class="btn-grid" style="margin-top: 15px;">
+                    <button class="action-btn btn-primary" id="btnStartExport"><i class="fa-solid fa-download"></i> Export</button>
+                    <button class="action-btn" id="btnCancelExport">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal-content" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
+            <div class="popup-header">
+                <span class="popup-title"><i class="fa-solid fa-circle-question"></i> MR Animator - Help & Documentation</span>
+                <button class="close-popup-btn" id="closeHelpBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="popup-body" style="max-height: 70vh; overflow-y: auto;">
+                <!-- Help content will be loaded here -->
+                <div id="helpContent">
+                    <div style="text-align: center; padding: 20px;">
+                        <i class="fa-solid fa-spinner fa-pulse"></i> Loading help content...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- About Modal -->
+    <div class="modal-overlay" id="aboutModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="popup-header">
+                <span class="popup-title"><i class="fa-solid fa-info-circle"></i> About MR Animator</span>
+                <button class="close-popup-btn" id="closeAboutBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="popup-body" style="text-align: center;">
+                <div style="margin-bottom: 20px;">
+                    <i class="fa-solid fa-cubes" style="font-size: 64px; color: var(--accent);"></i>
+                </div>
+                <h2 style="color: var(--accent); margin-bottom: 10px;">MR Animator</h2>
+                <p style="color: var(--text-muted); margin-bottom: 20px;">Version 2.0.0</p>
+                <p style="margin-bottom: 15px;">A professional browser-based animation tool with keyframe animation, vector drawing, and advanced export features.</p>
+                <div style="border-top: 1px solid var(--border); padding-top: 15px; margin-top: 15px;">
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">
+                        <i class="fa-regular fa-copyright"></i> 2024 MR Animator. All rights reserved.
+                    </p>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">
+                        Built with <i class="fa-solid fa-heart" style="color: #ff6b6b;"></i> using HTML5 Canvas, JavaScript
+                    </p>
+                </div>
+                <div class="btn-grid" style="margin-top: 20px;">
+                    <button class="action-btn" id="btnWebsite"><i class="fa-solid fa-globe"></i> Website</button>
+                    <button class="action-btn" id="btnReportIssue"><i class="fa-solid fa-bug"></i> Report Issue</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="toastContainer"></div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="./js/lib/gif.js"></script>
+
+    <script src="./js/globals.js"></script>
+    <script src="./js/rn-slider.js"></script>
+    <script src="./js/sliderAdapter.js"></script>
+    <script src="./js/shape-manager.js"></script>
+    <script src="./js/undo-manager.js"></script>
+    <script src="./js/drag-manager.js?v=2"></script>
+    <script src="./js/animator.js"></script>
+    <script src="./js/operator.js"></script>
+    <script src="./js/tracks.js"></script> 
+    <script src="./js/shape.js"></script> 
+    <script src="./js/group.js"></script>
+    <script src="./js/freeDrawingTools.js"></script>
+    <script src="./js/fill-bucket.js"></script>
+    <script src="./js/shortcuts.js"></script>
+    <script src="./js/advanced-export.js"></script>
+    <script src="./js/help-content.js"></script>
+</body>
+</html>
