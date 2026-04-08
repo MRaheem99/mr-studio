@@ -1,5 +1,3 @@
-// freeDrawingTools.js
-
 const brushTypes = {
     SOLID: 'solid',
     TAPERED: 'tapered',
@@ -56,13 +54,11 @@ function getCanvasMousePosition(e) {
     };
 }
 
-// Draw stroke with brush type
 function drawStroke(ctx, points, width, color, opacity, brushType, taperStart = null, taperEnd = null) {
     if(points.length < 2) return;
     ctx.save();
     ctx.globalAlpha = opacity;
     
-    // Apply hardness (shadow blur for soft edges)
     if(strokeHardness < 100 && brushType !== brushTypes.TAPERED) {
         const blurAmount = (100 - strokeHardness) / 10;
         ctx.shadowBlur = blurAmount;
@@ -276,7 +272,6 @@ function drawEraserStroke(ctx, points, width) {
     ctx.restore();
 }
 
-// Update redrawAllStrokes for eraser preview
 function redrawAllStrokes() {
     if(!drawingCtx) return;
     drawingCanvas.width = canvas.width;
@@ -285,13 +280,10 @@ function redrawAllStrokes() {
     drawingCanvas.style.height = canvas.style.height;
     drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
     
-    // Draw all completed strokes
     for(let strokeData of allStrokes) {
         drawStroke(drawingCtx, strokeData.points, strokeData.width, strokeData.color,
             strokeData.opacity, strokeData.brushType, strokeData.taperStart, strokeData.taperEnd);
     }
-    
-    // Draw current stroke preview
     if(currentStrokePoints.length >= 2) {
         if(currentDrawingTool === 'eraser') {
             // For eraser preview, show red stroke
@@ -333,14 +325,11 @@ function eraseWithEraser(points, width) {
                 for(let i = 0; i < strokePoints.length - 1; i++) {
                     const p1 = strokePoints[i];
                     const p2 = strokePoints[i + 1];
-                    
-                    // Convert to world coordinates
                     const wp1 = shape.localToWorld(p1.x, p1.y);
                     const wp2 = shape.localToWorld(p2.x, p2.y);
                     
                     let isErased = false;
                     
-                    // Check if this segment intersects with eraser path
                     for(let j = 0; j < points.length - 1; j++) {
                         const e1 = points[j];
                         const e2 = points[j + 1];
@@ -541,11 +530,9 @@ function pointToSegmentDistance(p, a, b) {
     return Math.hypot(p.x - projX, p.y - projY);
 }
 
-// New function to erase stroke from existing shapes
 function eraseStrokeFromShapes(points, width) {
     if(points.length < 2) return;
     
-    // Store current shapes state for undo
     const shapesBefore = JSON.parse(JSON.stringify(shapes.map(s => {
         if(s.type === 'drawing' && s.strokesData) {
             return { id: s.id, strokesData: s.strokesData };
@@ -571,8 +558,6 @@ function eraseStrokeFromShapes(points, width) {
             if(newStrokes.length !== shape.strokesData.length) {
                 shape.strokesData = newStrokes;
                 anyChange = true;
-                
-                // Remove shape if no strokes left
                 if(shape.strokesData.length === 0) {
                     const index = shapes.indexOf(shape);
                     if(index !== -1) shapes.splice(index, 1);
@@ -580,8 +565,6 @@ function eraseStrokeFromShapes(points, width) {
             }
         }
     }
-    
-    // Create undo command if changes were made
     if(anyChange && window.undoManager) {
         const shapesAfter = JSON.parse(JSON.stringify(shapes.map(s => {
             if(s.type === 'drawing' && s.strokesData) {
@@ -593,7 +576,6 @@ function eraseStrokeFromShapes(points, width) {
         const eraseCommand = {
             execute: () => {},
             undo: () => {
-                // Restore shapes
                 for(let i = 0; i < shapes.length; i++) {
                     if(shapes[i].type === 'drawing' && shapesAfter[i] && shapesAfter[i].strokesData) {
                         shapes[i].strokesData = shapesAfter[i].strokesData;
@@ -610,7 +592,6 @@ function eraseStrokeFromShapes(points, width) {
     rebuildTracks();
 }
 
-// Helper function to erase a line from a stroke
 function eraseLineFromStroke(strokePoints, eraserPoints, eraserWidth) {
     if(strokePoints.length < 2) return strokePoints;
     
@@ -624,12 +605,10 @@ function eraseLineFromStroke(strokePoints, eraserPoints, eraserWidth) {
         
         let segmentErased = false;
         
-        // Check if this segment intersects with eraser path
         for(let j = 0; j < eraserPoints.length - 1; j++) {
             const e1 = eraserPoints[j];
             const e2 = eraserPoints[j + 1];
             
-            // Check distance from eraser line to stroke segment
             const distance = distanceBetweenSegments(p1, p2, e1, e2);
             if(distance < eraserRadius) {
                 segmentErased = true;
@@ -654,11 +633,9 @@ function eraseLineFromStroke(strokePoints, eraserPoints, eraserWidth) {
         result.push(currentSegment);
     }
     
-    // Flatten result
     if(result.length === 0) return [];
     if(result.length === 1) return result[0];
     
-    // For multiple segments, return the longest one
     let longest = result[0];
     for(let seg of result) {
         if(seg.length > longest.length) longest = seg;
@@ -666,9 +643,7 @@ function eraseLineFromStroke(strokePoints, eraserPoints, eraserWidth) {
     return longest;
 }
 
-// Calculate minimum distance between two line segments
 function distanceBetweenSegments(a1, a2, b1, b2) {
-    // Check distance from points of segment A to segment B
     const d1 = distancePointToSegment(a1, b1, b2);
     const d2 = distancePointToSegment(a2, b1, b2);
     const d3 = distancePointToSegment(b1, a1, a2);
@@ -676,7 +651,6 @@ function distanceBetweenSegments(a1, a2, b1, b2) {
     return Math.min(d1, d2, d3, d4);
 }
 
-// Calculate distance from point to line segment
 function distancePointToSegment(point, seg1, seg2) {
     const dx = seg2.x - seg1.x;
     const dy = seg2.y - seg1.y;
@@ -742,7 +716,6 @@ function finishDrawing() {
     
     const drawingPointsState = JSON.parse(JSON.stringify(allStrokes));
     
-    // Calculate bounds to center the shape
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     for(let stroke of allStrokes) {
         for(let point of stroke.points) {
@@ -759,11 +732,9 @@ function finishDrawing() {
     const height = maxY - minY;
     const avgSize = Math.max(width, height, 50);
     
-    // Create shape at center position
     const shape = new Shape('drawing', centerX, centerY, avgSize);
     shape.strokesData = [];
     
-    // Convert points to local coordinates relative to center
     for(let stroke of allStrokes) {
         const localPoints = stroke.points.map(p => ({
             x: p.x - centerX,
