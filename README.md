@@ -56,7 +56,7 @@ Whether you are creating explainer videos, animated intros, or full-length **You
 - **12 Easing Types** - Linear, Ease In/Out, Bounce, Elastic, and more
 - **Smooth Interpolation** - Automatic frame interpolation
 - **Group Animation** - Animate entire groups as one unit
-- **Loop Playback** - Perfect for YouTube video intros and outros
+- **Loop Playback** - Perfect **for YouTube** video intros and outros
 
 ### 🖌️ Extensive Shape Library
 - **Basic Shapes** - Square, Circle, Triangle, Line
@@ -72,8 +72,8 @@ Whether you are creating explainer videos, animated intros, or full-length **You
 - **Opacity** - Transparency control
 - **Image Filters** - Brightness, contrast, saturation, blur
 
-### 📦 Export for YouTube & Social Media
-| Format | Best For |
+### 📦 Export **for YouTube & Social Media**
+| Format | Best Use |
 |--------|----------|
 | **WebM** | YouTube videos, high-quality exports |
 | **GIF** | Social media, previews, memes |
@@ -120,7 +120,7 @@ cd mr-studio
 
 MR Studio is a powerful free web-based javascript animation software, browser-based animation tool that combines vector drawing, keyframe animation, and professional export features. Create stunning animations, create cartoon animations, create animation videos for Youtube channel, draw freehand with multiple brush types, group objects, add keyframes with easing, and export to video or GIF - all without installing any software.
 
-Whether you are a professional animator, Youtuber, creating animation for Youtube channel, motion graphics designer, or hobbyist, MR Studio provides the tools you need to bring your ideas to life.
+Whether you are a professional animator, Youtuber, creating animation on YouTube channel, motion graphics designer, or hobbyist, MR Studio provides the tools you need to bring your ideas to life.
 
 ---
 
