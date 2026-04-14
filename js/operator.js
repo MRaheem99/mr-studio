@@ -3,13 +3,81 @@
 
     function drawTimelineRuler() {
         const ctx = timelineRuler.getContext("2d");
-        const width = timelineTracks.scrollWidth || 2000;
-        timelineRuler.width = width;
+        const duration = window.animationState.duration + 60 || 60;
+        const totalWidth = Math.max(duration * pixelsPerSecond + 200, timelineTracksWrapper.clientWidth + 100);
+
+        timelineRuler.width = totalWidth;
+        timelineRuler.style.width = totalWidth + "px";
         timelineRuler.height = 39;
-        ctx.clearRect(0, 0, width, 39);
-        const duration = Math.max(20, window.animationState.duration) || 20;
+        ctx.clearRect(0, 0, totalWidth, 39);
+
         const bottom = timelineRuler.height;
-        for(let s = 0; s <= duration; s++) {
+
+        if (loopEnabled) {
+            const startX = loopStartTime * pixelsPerSecond;
+            const endX = loopEndTime * pixelsPerSecond;
+
+            ctx.fillStyle = "rgba(0, 212, 255, 0.2)";
+            ctx.fillRect(startX, 0, endX - startX, bottom);
+
+            ctx.beginPath();
+            ctx.moveTo(startX, 0);
+            ctx.lineTo(startX, bottom);
+            ctx.strokeStyle = "#00d4ff";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(endX, 0);
+            ctx.lineTo(endX, bottom);
+            ctx.strokeStyle = "#ff9f43";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            ctx.fillStyle = "#00d4ff";
+            ctx.font = "10px sans-serif";
+            ctx.fillText("Loop Start", startX + 4, bottom - 5);
+            ctx.fillStyle = "#ff9f43";
+            ctx.fillText("Loop End", endX + 4, bottom - 5);
+        }
+
+        bookmarks.forEach(bookmark => {
+            const x = bookmark.time * pixelsPerSecond;
+
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, bottom);
+            ctx.strokeStyle = bookmark.isLoopStart ? "#00d4ff" : (bookmark.isLoopEnd ? "#ff9f43" : "#ff5ec4");
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(x, 5);
+            ctx.lineTo(x + 6, 12);
+            ctx.lineTo(x, 19);
+            ctx.lineTo(x - 6, 12);
+            ctx.closePath();
+            ctx.fillStyle = bookmark.isLoopStart ? "#00d4ff" : (bookmark.isLoopEnd ? "#ff9f43" : "#ff5ec4");
+            ctx.fill();
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            ctx.fillStyle = "#ccc";
+            ctx.font = "9px sans-serif";
+            const label = bookmark.name.length > 15 ? bookmark.name.substring(0, 12) + "..." : bookmark.name;
+            ctx.fillText(label, x + 8, 14);
+        });
+
+        const currentX = window.animationState.currentTime * pixelsPerSecond;
+        ctx.beginPath();
+        ctx.moveTo(currentX, 0);
+        ctx.lineTo(currentX, bottom);
+        ctx.strokeStyle = "#ff0000";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        for (let s = 0; s <= duration + 1; s++) {
             const x = s * pixelsPerSecond;
             ctx.strokeStyle = "#666";
             ctx.beginPath();
@@ -19,7 +87,8 @@
             ctx.fillStyle = "#aaa";
             ctx.font = "10px sans-serif";
             ctx.fillText(s + "s", x + 4, bottom - 22);
-            for(let sub = 1; sub < subdivisions; sub++) {
+
+            for (let sub = 1; sub < subdivisions; sub++) {
                 const subX = x + (sub * pixelsPerSecond / subdivisions);
                 ctx.strokeStyle = "#333";
                 ctx.beginPath();
@@ -30,9 +99,284 @@
         }
     }
 
+    function addBookmark(time, name = null) {
+        time = Math.max(0, Math.min(time, window.animationState.duration));
+
+        const existing = bookmarks.find(b => Math.abs(b.time - time) < 0.05);
+        if (existing) {
+            showToast("Bookmark already exists at this time", 'I');
+            return existing;
+        }
+
+        const bookmark = {
+            id: Date.now(),
+            time: time,
+            name: name || `ðŸ“Œ ${time.toFixed(2)}s`,
+            isLoopStart: false,
+            isLoopEnd: false
+        };
+
+        bookmarks.push(bookmark);
+        bookmarks.sort((a, b) => a.time - b.time);
+        drawTimelineRuler();
+        return bookmark;
+    }
+
+    function removeBookmark(bookmark) {
+        const index = bookmarks.indexOf(bookmark);
+        if (index !== -1) {
+            bookmarks.splice(index, 1);
+            drawTimelineRuler();
+        }
+    }
+
+    function getTimelineTimeFromClick(clientX) {
+        const rulerRect = timelineRuler.getBoundingClientRect();
+        if (clientX < rulerRect.left || clientX > rulerRect.right) return 0;
+
+        const scrollLeft = timelineRuler.scrollLeft;
+        const clickX = clientX - rulerRect.left;
+        const absoluteX = clickX + scrollLeft;
+
+        const time = absoluteX / pixelsPerSecond;
+        const maxTime = Math.max(window.animationState.duration, 60);
+        return Math.max(0, Math.min(time, maxTime));
+    }
+
+    function findBookmarkAtPosition(clientX) {
+        const rulerRect = timelineRuler.getBoundingClientRect();
+        if (clientX < rulerRect.left || clientX > rulerRect.right) return null;
+
+        const scrollLeft = timelineRuler.scrollLeft;
+        const clickX = clientX - rulerRect.left;
+        const absoluteX = clickX + scrollLeft;
+
+        for (let bookmark of bookmarks) {
+            const bookmarkX = bookmark.time * pixelsPerSecond;
+            if (Math.abs(bookmarkX - absoluteX) < 10) {
+                return bookmark;
+            }
+        }
+        return null;
+    }
+
+    function showBookmarkMenu(bookmark, clientX, clientY) {
+        const menu = document.getElementById('bookmarkMenuModal');
+        if (!menu) return;
+
+        selectedBookmark = bookmark;
+
+        menu.style.display = 'flex';
+        menu.style.position = 'fixed';
+        menu.style.left = clientX + 'px';
+        menu.style.top = clientY + 'px';
+        menu.style.zIndex = '10000';
+
+        const btnSetStart = document.getElementById('bookmarkSetLoopStart');
+        const btnSetEnd = document.getElementById('bookmarkSetLoopEnd');
+        const btnRemove = document.getElementById('bookmarkRemove');
+        const btnCancel = document.getElementById('bookmarkCancel');
+        const btnClearLoop = document.getElementById('clearLoop');
+
+        const closeMenu = () => {
+            menu.style.display = 'none';
+            selectedBookmark = null;
+        };
+
+        const newBtnSetStart = btnSetStart.cloneNode(true);
+        const newBtnSetEnd = btnSetEnd.cloneNode(true);
+        const newBtnRemove = btnRemove.cloneNode(true);
+        const newBtnCancel = btnCancel.cloneNode(true);
+        const newBtnClearLoop = btnClearLoop.cloneNode(true);
+
+        btnSetStart.parentNode.replaceChild(newBtnSetStart, btnSetStart);
+        btnSetEnd.parentNode.replaceChild(newBtnSetEnd, btnSetEnd);
+        btnRemove.parentNode.replaceChild(newBtnRemove, btnRemove);
+        btnCancel.parentNode.replaceChild(newBtnCancel, btnCancel);
+        btnClearLoop.parentNode.replaceChild(newBtnClearLoop, btnClearLoop);
+
+        newBtnSetStart.onclick = () => {
+            setLoopStartFromBookmark(bookmark);
+            closeMenu();
+        };
+
+        newBtnSetEnd.onclick = () => {
+            setLoopEndFromBookmark(bookmark);
+            closeMenu();
+        };
+
+        newBtnRemove.onclick = () => {
+            removeBookmark(bookmark);
+            closeMenu();
+        };
+
+        newBtnClearLoop.onclick = () => {
+            clearLoop();
+            closeMenu();
+        };
+
+        newBtnCancel.onclick = closeMenu;
+
+        menu.classList.add('open');
+    }
+
+    function setLoopStartFromBookmark(bookmark) {
+        loopStartTime = bookmark.time;
+        loopEnabled = true;
+
+        bookmarks.forEach(b => b.isLoopStart = false);
+        bookmark.isLoopStart = true;
+
+        if (loopStartTime >= loopEndTime) {
+            loopEndTime = Math.min(loopStartTime + 1, window.animationState.duration);
+        }
+
+        drawTimelineRuler();
+
+        const btnLoop = document.getElementById('btnLoop');
+        if (btnLoop) {
+            btnLoop.classList.add('mode-active');
+            btnLoop.style.color = 'var(--accent)';
+        }
+    }
+
+    function setLoopEndFromBookmark(bookmark) {
+        loopEndTime = bookmark.time;
+        loopEnabled = true;
+
+        bookmarks.forEach(b => b.isLoopEnd = false);
+        bookmark.isLoopEnd = true;
+
+        if (loopEndTime <= loopStartTime) {
+            loopStartTime = Math.max(0, loopEndTime - 1);
+        }
+
+        drawTimelineRuler();
+
+        const btnLoop = document.getElementById('btnLoop');
+        if (btnLoop) {
+            btnLoop.classList.add('mode-active');
+            btnLoop.style.color = 'var(--accent)';
+        }
+    }
+
+    function toggleLoop() {
+        loopEnabled = !loopEnabled;
+        const btnLoop = document.getElementById('btnLoop');
+        if (btnLoop) {
+            if (loopEnabled) {
+                btnLoop.classList.add('mode-active');
+                btnLoop.style.color = 'var(--accent)';
+                showToast(`Loop enabled (${loopStartTime.toFixed(1)}s - ${loopEndTime.toFixed(1)}s)`, 'S');
+            } else {
+                btnLoop.classList.remove('mode-active');
+                btnLoop.style.color = '';
+                showToast("Loop disabled", 'I');
+            }
+        }
+        drawTimelineRuler();
+    }
+
+    function clearLoop() {
+        loopEnabled = false;
+        loopStartTime = 0;
+        loopEndTime = window.animationState.duration;
+
+        bookmarks.forEach(b => {
+            b.isLoopStart = false;
+            b.isLoopEnd = false;
+        });
+
+        const btnLoop = document.getElementById('btnLoop');
+        if (btnLoop) {
+            btnLoop.classList.remove('mode-active');
+            btnLoop.style.color = '';
+        }
+        drawTimelineRuler();
+    }
+
+    function resetLoopTimes() {
+        loopEndTime = window.animationState.duration;
+        if (loopStartTime >= loopEndTime) {
+            loopStartTime = Math.max(0, loopEndTime - 5);
+        }
+        drawTimelineRuler();
+    }
+
+    function initTimelineRulerEvents() {
+        timelineRuler.addEventListener('click', (e) => {
+            if (e.ctrlKey) return;
+
+            const bookmark = findBookmarkAtPosition(e.clientX);
+            if (bookmark) return;
+
+            const time = getTimelineTimeFromClick(e.clientX);
+            if (window.seekAnimation) {
+                window.seekAnimation(time);
+                showToast(`Moved to ${time.toFixed(2)}s`, 'I');
+            }
+        });
+
+        timelineRuler.addEventListener('mousedown', (e) => {
+            if (e.ctrlKey) {
+                return;
+            }
+
+            const bookmark = findBookmarkAtPosition(e.clientX);
+            if (bookmark) {
+                e.preventDefault();
+                e.stopPropagation();
+                showBookmarkMenu(bookmark, e.clientX, e.clientY);
+                return;
+            }
+        });
+
+        timelineRuler.addEventListener('dblclick', (e) => {
+            if (e.ctrlKey) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+            const time = getTimelineTimeFromClick(e.clientX);
+            const bookmark = addBookmark(time);
+
+            setTimeout(() => {
+                showPrompt("Enter bookmark name:", bookmark.name, (newName) => {
+                    if (newName && newName.trim()) {
+                        bookmark.name = newName;
+                        drawTimelineRuler();
+                    }
+                });
+            }, 50);
+        });
+
+        timelineRuler.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const time = getTimelineTimeFromClick(e.clientX);
+            addBookmark(time);
+        });
+
+        timelineRuler.addEventListener('mousemove', (e) => {
+            if (e.ctrlKey) {
+                timelineRuler.style.cursor = 'grab';
+            } else {
+                const bookmark = findBookmarkAtPosition(e.clientX);
+                if (bookmark) {
+                    timelineRuler.style.cursor = 'pointer';
+                } else {
+                    timelineRuler.style.cursor = 'crosshair';
+                }
+            }
+        });
+
+        timelineRuler.addEventListener('mouseleave', () => {
+            timelineRuler.style.cursor = 'pointer';
+        });
+    }
+
     function setMode(mode) {
         viewport.mode = mode;
-        if(mode === 'canvas') {
+        if (mode === 'canvas') {
             container.classList.add('canvas-mode');
             btnModeCanvas.classList.add('mode-active');
             btnModeObject.classList.remove('mode-active');
@@ -45,22 +389,29 @@
 
     function fitCanvasToScreen() {
         const s = window.animationState.settings;
+        const timelineHeight = timelineContainer.offsetHeight;
+
         const containerRect = container.getBoundingClientRect();
+        const availableHeight = containerRect.height - timelineHeight;
+
         const scaleX = containerRect.width / s.width;
-        const scaleY = containerRect.height / s.height;
+        const scaleY = availableHeight / s.height;
         const fitScale = Math.min(scaleX, scaleY) * 0.95;
         viewport.scale = fitScale;
+
         const canvasWidth = s.width * fitScale;
         const canvasHeight = s.height * fitScale;
+
         viewport.pointX = (containerRect.width - canvasWidth) / 2;
-        viewport.pointY = (containerRect.height - canvasHeight) / 2;
+        viewport.pointY = (availableHeight - canvasHeight) / 2;
+
         updateCanvasTransform();
     }
 
     function updateCanvasTransform() {
         canvas.style.transform = `translate(${viewport.pointX}px, ${viewport.pointY}px) scale(${viewport.scale})`;
         canvas.style.transformOrigin = "top left";
-        if(drawingCanvas) {
+        if (drawingCanvas) {
             drawingCanvas.style.transform = canvas.style.transform;
             drawingCanvas.style.transformOrigin = canvas.style.transformOrigin;
         }
@@ -89,14 +440,26 @@
         window.animationState.duration = duration;
         updateTimelineUI();
     }
+
+    function getLastKeyframeTime() {
+        let maxTime = 0;
+        shapes.forEach(shape => {
+            shape.keyframes.forEach(kf => {
+                if (kf.time > maxTime) {
+                    maxTime = kf.time;
+                }
+            });
+        });
+        return maxTime;
+    }
     canvas.addEventListener('contextmenu', (e) => {
-        if(selectedShape && (selectedShape.type === "polyline" || selectedShape.type === "path")) {
+        if (selectedShape && (selectedShape.type === "polyline" || selectedShape.type === "path")) {
             e.preventDefault();
         }
     });
     container.addEventListener('wheel', (e) => {
-        if(e.ctrlKey) e.preventDefault();
-        if(!e.ctrlKey || viewport.mode !== 'canvas') return;
+        if (e.ctrlKey) e.preventDefault();
+        if (!e.ctrlKey || viewport.mode !== 'canvas') return;
         e.preventDefault();
         const rect = container.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
@@ -126,7 +489,7 @@
     btnSettings.addEventListener('click', () => openPopup(settingsModal));
     closeSettingsBtn.addEventListener('click', () => settingsModal.classList.remove('open'));
     settingsModal.addEventListener('click', e => {
-        if(e.target === settingsModal) settingsModal.classList.remove('open');
+        if (e.target === settingsModal) settingsModal.classList.remove('open');
     });
     document.getElementById('projName').addEventListener('change', e => window.animationState.settings.projectName = e.target.value);
     document.getElementById('projWidth').addEventListener('change', e => {
@@ -141,18 +504,18 @@
     document.getElementById('projTransparent').addEventListener('change', e => window.animationState.settings.transparent = e.target.checked);
     document.getElementById('animStep').addEventListener('change', e => {
         window.animationState.settings.keyframeStep = parseFloat(e.target.value);
-        if(shapeManager) shapeManager.recalculateGlobalDuration();
+        if (shapeManager) shapeManager.recalculateGlobalDuration();
     });
     document.getElementById('animInterpolate').addEventListener('change', e => window.animationState.settings.interpolate = e.target.checked);
     document.getElementById("removeFillImage").onclick = () => {
-        if(!shapeManager.selectedShape) return;
+        if (!shapeManager.selectedShape) return;
         shapeManager.selectedShape.bgImage = null;
         shapeManager.selectedShape.bgImageObj = null;
         shapeManager.redraw();
     };
     btnPlay.addEventListener('click', () => {
-        if(window.animationState.isPlaying) return;
-        if(window.animationState.duration === 0) {
+        if (window.animationState.isPlaying) return;
+        if (window.animationState.duration === 0) {
             showToast("Add keyframes first!", 'I');
             return;
         }
@@ -170,7 +533,7 @@
     btnAddShape.addEventListener('click', () => openPopup(shapeModal));
     closeShapeModalBtn.addEventListener('click', () => shapeModal.classList.remove('open'));
     shapeModal.addEventListener('click', e => {
-        if(e.target === shapeModal) shapeModal.classList.remove('open');
+        if (e.target === shapeModal) shapeModal.classList.remove('open');
     });
     shapeOptions.forEach(opt => {
         opt.addEventListener('click', () => {
@@ -178,17 +541,17 @@
                 y = canvas.height / 2;
             const s = new Shape(opt.dataset.shape, x, y, 100);
             s.selected = true;
-            if(selectedShape) selectedShape.selected = false;
+            if (selectedShape) selectedShape.selected = false;
             selectedShape = s;
-            if(opt.dataset.shape === 'path') {
+            if (opt.dataset.shape === 'path') {
                 penMode = true;
             } else {
                 penMode = false;
             }
-            if(window.undoManager) {
+            if (window.undoManager) {
                 window.undoManager.execute(new ObjectLifecycleCommand(
                     shapes, s, 'add', shapes.length, () => {
-                        if(shapeManager) shapeManager.setSelectedShape(s);
+                        if (shapeManager) shapeManager.setSelectedShape(s);
                         drawAll();
                     }
                 ));
@@ -199,30 +562,33 @@
         });
     });
     btnAddText.addEventListener('click', () => {
-        const text = prompt("Enter text:", "Hello World");
-        if(!text) return;
-        const s = new Shape('text', canvas.width / 2, canvas.height / 2, 100);
-        s.text = text;
-        s.selected = true;
-        if(selectedShape) selectedShape.selected = false;
-        selectedShape = s;
-        window.undoManager.execute(
-            new ObjectLifecycleCommand(
-                shapes,
-                s,
-                'add',
-                shapes.length,
-                () => {
-                    if(shapeManager) shapeManager.setSelectedShape(s);
-                    drawAll();
-                }
-            )
-        );
+        showPrompt("Enter text:", "Hello World", (text) => {
+            if (!text) return;
+
+            const s = new Shape('text', canvas.width / 2, canvas.height / 2, 100);
+            s.text = text;
+            s.selected = true;
+            if (selectedShape) selectedShape.selected = false;
+            selectedShape = s;
+
+            window.undoManager.execute(
+                new ObjectLifecycleCommand(
+                    shapes,
+                    s,
+                    'add',
+                    shapes.length,
+                    () => {
+                        if (shapeManager) shapeManager.setSelectedShape(s);
+                        drawAll();
+                    }
+                )
+            );
+        });
     });
     btnAddImage.addEventListener('click', () => imageInput.click());
     imageInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
-        if(file) {
+        if (file) {
             const reader = new FileReader();
             reader.onload = (evt) => {
                 const img = new Image();
@@ -230,7 +596,7 @@
                     const s = new Shape('image', canvas.width / 2, canvas.height / 2, 150);
                     s.imageObj = img;
                     s.selected = true;
-                    if(selectedShape) selectedShape.selected = false;
+                    if (selectedShape) selectedShape.selected = false;
                     selectedShape = s;
                     window.undoManager.execute(
                         new ObjectLifecycleCommand(
@@ -239,7 +605,7 @@
                             'add',
                             shapes.length,
                             () => {
-                                if(shapeManager) shapeManager.setSelectedShape(s);
+                                if (shapeManager) shapeManager.setSelectedShape(s);
                                 drawAll();
                             }
                         )
@@ -251,103 +617,161 @@
         }
         imageInput.value = '';
     });
-    if(btnExportVideo) {
+    if (btnExportVideo) {
         btnExportVideo.addEventListener('click', async () => {
             if(window.animationState.duration === 0) {
                 showToast("Add keyframes first!", 'I');
                 return;
             }
-            if(!confirm(`Export video? This will play the animation from start to finish (${window.animationState.duration.toFixed(1)}s).`)) {
-                return;
-            }
-            exportStatus.style.display = 'block';
-            exportStatus.textContent = "Preparing recording...";
-            btnExportVideo.disabled = true;
-            const stream = canvas.captureStream(60);
-            const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9") ?
-                "video/webm;codecs=vp9" :
-                "video/webm";
-            mediaRecorder = new MediaRecorder(stream, {
-                mimeType: mimeType,
-                videoBitsPerSecond: 5000000
-            });
-            recordedChunks = [];
-            mediaRecorder.ondataavailable = (event) => {
-                if(event.data.size > 0) {
-                    recordedChunks.push(event.data);
-                }
-            };
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(recordedChunks, {
-                    type: "video/webm"
-                });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${window.animationState.settings.projectName.replace(/\s+/g, '_')}.webm`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                exportStatus.style.display = 'none';
-                btnExportVideo.disabled = false;
-                setMode('object');
-                drawAll();
-            };
-            mediaRecorder.start();
-            window.animationState.currentTime = 0;
-            window.animationState.isPlaying = true;
-            window.animationState.lastFrameTime = performance.now();
-            const stopTime = window.animationState.duration;
-            const recordLoop = (timestamp) => {
-                if(!window.animationState.isPlaying) {
-                    mediaRecorder.stop();
-                    return;
-                }
-                const deltaTime = (timestamp - window.animationState.lastFrameTime) / 1000;
-                window.animationState.lastFrameTime = timestamp;
-                window.animationState.currentTime += deltaTime;
-                if(window.animationState.currentTime >= stopTime) {
-                    window.animationState.currentTime = stopTime;
-                    resetAnimationState();
+            
+            showConfirmDialog(
+                "Export Video",
+                `Export video? This will play the animation from start to finish (${window.animationState.duration.toFixed(1)}s).`,
+                async () => {
+                    exportStatus.style.display = 'block';
+                    exportStatus.textContent = "Preparing recording...";
+                    btnExportVideo.disabled = true;
+                    
+                    const exportCanvas = document.createElement('canvas');
+                    exportCanvas.width = canvas.width;
+                    exportCanvas.height = canvas.height;
+                    const exportCtx = exportCanvas.getContext('2d');
+                    
+                    const stream = exportCanvas.captureStream(60);
+                    const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9") ?
+                        "video/webm;codecs=vp9" :
+                        "video/webm";
+                    
+                    mediaRecorder = new MediaRecorder(stream, {
+                        mimeType: mimeType,
+                        videoBitsPerSecond: 8000000
+                    });
+                    
+                    recordedChunks = [];
+                    mediaRecorder.ondataavailable = (event) => {
+                        if(event.data.size > 0) {
+                            recordedChunks.push(event.data);
+                        }
+                    };
+                    
+                    const originalTime = window.animationState.currentTime;
+                    const wasPlaying = window.animationState.isPlaying;
+                    window.animationState.isPlaying = false;
+                    
+                    const originalSelectedShapes = [...selectedShapes];
+                    const originalSelectedShape = selectedShape;
+                    
+                    for(let shape of shapes) {
+                        shape.selected = false;
+                    }
+                    selectedShapes = [];
+                    selectedShape = null;
                     drawAll();
-                    updatePlayhead();
-                    timelineTracksWrapper.scrollLeft = 0;
-                    interpolateAndDraw();
-                    mediaRecorder.stop();
-                    exportStatus.textContent = "Video saved!";
-                    setTimeout(() => exportStatus.style.display = 'none', 2000);
-                    return;
+                    
+                    await new Promise(r => setTimeout(r, 100));
+                    
+                    mediaRecorder.start();
+                    
+                    const duration = window.animationState.duration;
+                    const fps = 60;
+                    const totalFrames = Math.ceil(duration * fps);
+                    let currentFrame = 0;
+                    
+                    exportStatus.textContent = "Rendering frames...";
+                    
+                    const renderFrame = () => {
+                        if(currentFrame >= totalFrames) {
+                            setTimeout(() => {
+                                if(mediaRecorder.state === 'recording') {
+                                    mediaRecorder.stop();
+                                }
+                            }, 100);
+                            
+                            window.seekAnimation(originalTime);
+                            window.animationState.isPlaying = wasPlaying;
+                            
+                            for(let shape of shapes) {
+                                shape.selected = false;
+                            }
+                            for(let shape of originalSelectedShapes) {
+                                shape.selected = true;
+                            }
+                            selectedShapes = originalSelectedShapes;
+                            selectedShape = originalSelectedShape;
+                            if(shapeManager) shapeManager.setSelectedShape(selectedShape);
+                            drawAll();
+                            
+                            exportStatus.textContent = "Finalizing...";
+                            return;
+                        }
+                        
+                        const time = currentFrame / fps;
+                        window.seekAnimation(Math.min(time, duration));
+                        
+                        exportCtx.clearRect(0, 0, exportCanvas.width, exportCanvas.height);
+                        
+                        if(!window.animationState.settings.transparent) {
+                            exportCtx.fillStyle = window.animationState.settings.bgColor;
+                            exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+                        }
+                        
+                        for(let shape of shapes) {
+                            shape.draw(exportCtx);
+                        }
+                        
+                        currentFrame++;
+                        exportStatus.textContent = `Rendering frame ${currentFrame}/${totalFrames}`;
+                        
+                        requestAnimationFrame(renderFrame);
+                    };
+                    
+                    setTimeout(() => {
+                        renderFrame();
+                    }, 100);
+                    
+                    mediaRecorder.onstop = () => {
+                        const blob = new Blob(recordedChunks, { type: "video/webm" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `${window.animationState.settings.projectName.replace(/\s+/g, '_')}.webm`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        exportStatus.style.display = 'none';
+                        btnExportVideo.disabled = false;
+                        showToast("Video exported successfully!", 'S');
+                    };
+                },
+                () => {
+                    showToast("Export cancelled", 'I');
                 }
-                updateTimelineUI();
-                interpolateAndDraw();
-                requestAnimationFrame(recordLoop);
-            };
-            requestAnimationFrame(recordLoop);
+            );
         });
     }
-    if(btnOpenEditModal) {
+    if (btnOpenEditModal) {
         btnOpenEditModal.addEventListener('click', () => {
             shapeManager.openEditModal();
         });
     }
-    if(btnCancelEdit) {
+    if (btnCancelEdit) {
         btnCancelEdit.addEventListener('click', () => {
             shapeManager.exitEditMode();
             interpolateAndDraw();
         });
     }
     document.addEventListener('keydown', (e) => {
-        if((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
             e.preventDefault();
-            if(window.undoManager.undo()) {
+            if (window.undoManager.undo()) {
                 updateUndoRedoButtons();
                 drawAll();
             }
         }
-        if((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
             e.preventDefault();
-            if(window.undoManager.redo()) {
+            if (window.undoManager.redo()) {
                 updateUndoRedoButtons();
                 drawAll();
             }
@@ -357,24 +781,24 @@
     function updateUndoRedoButtons() {
         const btnUndo = document.getElementById('btnUndo');
         const btnRedo = document.getElementById('btnRedo');
-        if(!window.undoManager) return;
+        if (!window.undoManager) return;
         const info = window.undoManager.getStackInfo();
-        if(btnUndo) btnUndo.disabled = info.undo === 0;
-        if(btnRedo) btnRedo.disabled = info.redo === 0;
+        if (btnUndo) btnUndo.disabled = info.undo === 0;
+        if (btnRedo) btnRedo.disabled = info.redo === 0;
     }
     const btnUndo = document.getElementById('btnUndo');
     const btnRedo = document.getElementById('btnRedo');
-    if(btnUndo) {
+    if (btnUndo) {
         btnUndo.addEventListener('click', () => {
-            if(window.undoManager.undo()) {
+            if (window.undoManager.undo()) {
                 updateUndoRedoButtons();
                 drawAll();
             }
         });
     }
-    if(btnRedo) {
+    if (btnRedo) {
         btnRedo.addEventListener('click', () => {
-            if(window.undoManager.redo()) {
+            if (window.undoManager.redo()) {
                 updateUndoRedoButtons();
                 drawAll();
             }
@@ -387,39 +811,51 @@
         const wrapperWidth = timelineTracksWrapper.clientWidth;
         const tracksHeight = timelineTracks.scrollHeight;
         playhead.style.height = tracksHeight + "px";
-        if(x > wrapperWidth / 2) {
+
+        if (x > wrapperWidth / 2) {
             timelineTracksWrapper.scrollLeft = x - wrapperWidth / 2;
+        }
+
+        if (autoExtendEnabled) {
+            const scrollLeft = timelineTracksWrapper.scrollLeft;
+            const scrollWidth = timelineTracksWrapper.scrollWidth;
+            const clientWidth = timelineTracksWrapper.clientWidth;
+
+            if (scrollLeft + clientWidth >= scrollWidth - autoExtendThreshold) {
+                extendTimeline();
+            }
         }
     }
 
     function startTimelineDrag(e) {
-        if(!isMobile) {
-            if(!e.ctrlKey) return;
-        } else {
-            if(viewport.mode !== "canvas") return;
+        if (e.ctrlKey) {
+            timelineDragging = true;
+            timelineDragStartX = e.touches ? e.touches[0].clientX : e.clientX;
+            timelineScrollStart = timelineTracksWrapper.scrollLeft;
+            timelineTracksWrapper.style.cursor = "grabbing";
+            timelineRuler.style.cursor = "grabbing";
+            e.preventDefault();
+            e.stopPropagation();
         }
-        timelineDragging = true;
-        timelineDragStartX = e.touches ? e.touches[0].clientX : e.clientX;
-        timelineScrollStart = timelineTracksWrapper.scrollLeft;
-        timelineTracksWrapper.style.cursor = "grab";
-        timelineRuler.style.cursor = "grab";
-        e.preventDefault();
     }
 
     function moveTimelineDrag(e) {
-        if(!timelineDragging) return;
+        if (!timelineDragging) return;
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const dx = clientX - timelineDragStartX;
-        timelineTracksWrapper.scrollLeft = timelineScrollStart - dx;
-        timelineTracksWrapper.style.cursor = "grabbing";
-        timelineRuler.style.cursor = "grabbing";
+        const newScrollLeft = timelineScrollStart - dx;
+
+        timelineTracksWrapper.scrollLeft = newScrollLeft;
+        timelineRuler.scrollLeft = newScrollLeft;
+
         e.preventDefault();
+        e.stopPropagation();
     }
 
     function endTimelineDrag() {
         timelineDragging = false;
         timelineTracksWrapper.style.cursor = "default";
-        timelineRuler.style.cursor = "default";
+        timelineRuler.style.cursor = "pointer";
     }
     resizeHandle.addEventListener("mousedown", (e) => {
         timelineResizing = true;
@@ -428,13 +864,14 @@
         document.body.style.cursor = "ns-resize";
     });
     document.addEventListener("mousemove", (e) => {
-        if(!timelineResizing) return;
+        if (!timelineResizing) return;
         const dy = startY - e.clientY;
         let newHeight = startHeight + dy;
         newHeight = Math.max(40, newHeight);
         newHeight = Math.min(window.innerHeight * 0.6, newHeight);
         playerTime.style.bottom = (newHeight + 5) + "px";
         timelineContainer.style.height = newHeight + "px";
+        fitCanvasToScreen();
     });
     document.addEventListener("mouseup", () => {
         timelineResizing = false;
@@ -446,12 +883,13 @@
         startHeight = timelineContainer.offsetHeight;
     });
     document.addEventListener("touchmove", (e) => {
-        if(!resizingTimeline) return;
+        if (!resizingTimeline) return;
         const dy = startY - e.touches[0].clientY;
         const newHeight = Math.max(40, startHeight + dy);
         playerTime.style.bottom = (newHeight + 5) + "px";
         timelineContainer.style.height = newHeight + "px";
         updatePlayhead();
+        fitCanvasToScreen();
     });
     document.addEventListener("touchend", () => {
         resizingTimeline = false;
@@ -460,11 +898,11 @@
     function showToast(message, type, duration = 3000) {
         let toastBgColor = '#111111';
         let toastColor = '#eeeeee';
-        if(type === 'S') {
+        if (type === 'S') {
             toastBgColor = '#2eb82e';
-        } else if(type === 'E') {
+        } else if (type === 'E') {
             toastBgColor = '#ff5c33';
-        } else if(type === 'I') {
+        } else if (type === 'I') {
             toastBgColor = '#3399ff';
         } else {
             toastBgColor = '#111111';
@@ -482,13 +920,27 @@
             setTimeout(() => toast.remove(), 300);
         }, duration);
     }
+
+    /*
     window.updateTimelineSize = function() {
         const duration = window.animationState.duration || 10;
         const timelineWidth = duration * pixelsPerSecond + 800;
         timelineTracks.style.width = timelineWidth + "px";
+        timelineRuler.style.width = timelineWidth + "px";
         timelineRuler.width = timelineWidth;
         drawTimelineRuler();
     }
+    */
+    window.updateTimelineSize = function() {
+        const duration = window.animationState.duration || 60;
+        const minWidth = Math.max(duration * pixelsPerSecond + 200, 60 * pixelsPerSecond + 200);
+        const timelineWidth = Math.max(minWidth, timelineTracksWrapper.clientWidth + 100);
+        timelineTracks.style.width = timelineWidth + "px";
+        timelineRuler.width = timelineWidth;
+        timelineRuler.style.width = timelineWidth + "px";
+        drawTimelineRuler();
+    }
+
     timelineTracksWrapper.addEventListener("mousedown", startTimelineDrag);
     timelineRuler.addEventListener("mousedown", startTimelineDrag);
     timelineTracksWrapper.addEventListener("touchstart", startTimelineDrag, {
@@ -504,17 +956,21 @@
     window.addEventListener("mouseup", endTimelineDrag);
     window.addEventListener("touchend", endTimelineDrag);
     window.addEventListener("resize", fitCanvasToScreen);
+
     timelineTracksWrapper.addEventListener("scroll", () => {
         const scrollX = timelineTracksWrapper.scrollLeft;
         timelineRuler.style.transform = `translateX(${-scrollX}px)`;
         trackLabels.scrollTop = timelineTracksWrapper.scrollTop;
+        drawTimelineRuler();
     });
 
     function updateTimelineSize() {
-        const duration = window.animationState.duration || 10;
-        const width = Math.max(duration * pixelsPerSecond, timelineTracksWrapper.clientWidth + 1);
-        timelineTracks.style.width = width + "px";
-        timelineRuler.width = width;
+        const duration = window.animationState.duration || 60;
+        const minWidth = Math.max(duration * pixelsPerSecond + 200, 60 * pixelsPerSecond + 200);
+        const timelineWidth = Math.max(minWidth, timelineTracksWrapper.clientWidth + 100);
+        timelineTracks.style.width = timelineWidth + "px";
+        timelineRuler.width = timelineWidth;
+        timelineRuler.style.width = timelineWidth + "px";
         drawTimelineRuler();
     }
 
@@ -538,14 +994,14 @@
     }
 
     function updateEditModeIndicator() {
-        if(selectedShape && (selectedShape.type === "polyline" || selectedShape.type === "path")) {
-            if(penMode) {
+        if (selectedShape && (selectedShape.type === "polyline" || selectedShape.type === "path")) {
+            if (penMode) {
                 canvas.style.cursor = "crosshair";
             } else {
                 canvas.style.cursor = "default";
             }
         } else {
-            if(viewport.mode === 'canvas') {
+            if (viewport.mode === 'canvas') {
                 canvas.style.cursor = viewport.panning ? 'grabbing' : 'grab';
             } else {
                 canvas.style.cursor = 'default';
@@ -554,7 +1010,7 @@
     }
 
     function groupSelected() {
-        if(selectedShapes.length < 2) {
+        if (selectedShapes.length < 2) {
             showToast("Select at least 2 objects to group", 'I');
             return;
         }
@@ -574,6 +1030,12 @@
         group.x = centerX;
         group.y = centerY;
         const shapesToGroup = [...selectedShapes];
+        const oldShapesState = shapesToGroup.map(shape => ({
+            shape: shape,
+            x: shape.x,
+            y: shape.y,
+            index: shapes.indexOf(shape)
+        }));
         clearSelection();
         shapesToGroup.forEach(shape => {
             shape._originalWorldX = shape.x;
@@ -581,23 +1043,59 @@
             shape.x = shape.x - centerX;
             shape.y = shape.y - centerY;
             const index = shapes.indexOf(shape);
-            if(index !== -1) shapes.splice(index, 1);
+            if (index !== -1) shapes.splice(index, 1);
             group.children.push(shape);
         });
         shapes.push(group);
         selectShape(group);
         rebuildTracks();
         drawAll();
+
+        if (window.undoManager) {
+            const groupCommand = {
+                execute: () => {},
+                undo: () => {
+                    const groupIdx = shapes.indexOf(group);
+                    if (groupIdx !== -1) shapes.splice(groupIdx, 1);
+
+                    oldShapesState.forEach(state => {
+                        state.shape.x = state.x;
+                        state.shape.y = state.y;
+                        state.shape.parentGroup = null;
+                        shapes.splice(state.index, 0, state.shape);
+                    });
+
+                    clearSelection();
+                    oldShapesState.forEach(state => {
+                        state.shape.selected = true;
+                        selectedShapes.push(state.shape);
+                    });
+                    if (oldShapesState.length > 0) {
+                        selectedShape = oldShapesState[0].shape;
+                        if (shapeManager) shapeManager.setSelectedShape(selectedShape);
+                    }
+                    rebuildTracks();
+                    drawAll();
+                }
+            };
+            window.undoManager.execute(groupCommand);
+        }
     }
 
     function ungroupSelected() {
-        if(selectedShapes.length !== 1 || selectedShapes[0].type !== "group") {
+        if (selectedShapes.length !== 1 || selectedShapes[0].type !== "group") {
             showToast("Select a single group to ungroup", 'I');
             return;
         }
         const group = selectedShapes[0];
         const index = shapes.indexOf(group);
-        if(index !== -1) shapes.splice(index, 1);
+        const childrenState = group.children.map(child => ({
+            child: child,
+            x: child.x + group.x,
+            y: child.y + group.y,
+            parentGroup: child.parentGroup
+        }));
+        if (index !== -1) shapes.splice(index, 1);
         group.children.forEach(child => {
             child.x = child._originalWorldX || (child.x + group.x);
             child.y = child._originalWorldY || (child.y + group.y);
@@ -606,10 +1104,480 @@
         clearSelection();
         rebuildTracks();
         drawAll();
+
+        if (window.undoManager) {
+            const ungroupCommand = {
+                execute: () => {},
+                undo: () => {
+                    childrenState.forEach(state => {
+                        const idx = shapes.indexOf(state.child);
+                        if (idx !== -1) shapes.splice(idx, 1);
+                    });
+
+                    group.children = childrenState.map(state => state.child);
+                    group.children.forEach((child, i) => {
+                        child.x = childrenState[i].x - group.x;
+                        child.y = childrenState[i].y - group.y;
+                        child.parentGroup = group;
+                    });
+                    shapes.splice(index, 0, group);
+                    selectShape(group);
+                    rebuildTracks();
+                    drawAll();
+                }
+            };
+            window.undoManager.execute(ungroupCommand);
+        }
     }
-    if(window.updateTimelineSize) {
+
+    if (window.updateTimelineSize) {
         window.updateTimelineSize();
     }
+
+    function updateSoloModeStatus() {
+        const statusDiv = document.getElementById('soloModeStatus');
+        const soloNameSpan = document.getElementById('soloObjectName');
+        if (soloEditMode && soloEditObject) {
+            statusDiv.style.display = 'block';
+            soloNameSpan.textContent = getObjectName(soloEditObject);
+        } else {
+            statusDiv.style.display = 'none';
+        }
+    }
+
+    const exitSoloMode = document.getElementById('exitSoloMode');
+    if (exitSoloMode) {
+        exitSoloMode.addEventListener('click', () => {
+            soloEditMode = false;
+            soloEditObject = null;
+            rebuildTracks();
+            drawAll();
+            updateSoloModeStatus();
+            showToast("Solo mode exited - All objects editable", 'I');
+        });
+    }
+
+    function activateSelectionTool() {
+        if (typeof setDrawingTool === 'function' && allStrokes.length > 0) {
+            finishDrawing();
+            cancelDrawing();
+            setDrawingTool(null);
+        }
+
+        if (typeof setFillBucketTool === 'function') {
+            setFillBucketTool(false);
+        }
+        penMode = false;
+        isEditingPolyline = false;
+        isEditingPoint = false;
+
+        canvas.style.cursor = 'default';
+
+        selectionToolActive = true;
+
+        const btnSelectionTool = document.getElementById('btnSelectionTool');
+        const btnModeObject = document.getElementById('btnModeObject');
+        const btnModeCanvas = document.getElementById('btnModeCanvas');
+        const btnPencil = document.getElementById('btnPencil');
+        const btnBrush = document.getElementById('btnBrush');
+        const btnEraser = document.getElementById('btnEraser');
+
+        if (btnSelectionTool) btnSelectionTool.classList.add('mode-active');
+        if (btnModeObject) btnModeObject.classList.remove('mode-active');
+        if (btnModeCanvas) btnModeCanvas.classList.remove('mode-active');
+        if (btnPencil) btnPencil.classList.remove('mode-active');
+        if (btnBrush) btnBrush.classList.remove('mode-active');
+        if (btnEraser) btnEraser.classList.remove('mode-active');
+
+        const brushTypeSelector = document.getElementById('brushTypeSelector');
+        if (brushTypeSelector) brushTypeSelector.style.display = 'none';
+    }
+
+    function deactivateSelectionTool() {
+        selectionToolActive = false;
+        const btnSelectionTool = document.getElementById('btnSelectionTool');
+        if (btnSelectionTool) btnSelectionTool.classList.remove('mode-active');
+    }
+
+    const originalSetMode = setMode;
+    setMode = function(mode) {
+        if (mode === 'object') {
+            activateSelectionTool();
+        } else if (mode === 'canvas') {
+            deactivateSelectionTool();
+        }
+        if (originalSetMode) originalSetMode(mode);
+    };
+
+    const btnSelectionTool = document.getElementById('btnSelectionTool');
+    if (btnSelectionTool) {
+        btnSelectionTool.addEventListener('click', () => {
+            if (selectionToolActive) {
+                deactivateSelectionTool();
+            } else {
+                if (viewport.mode !== 'object') {
+                    setMode('object');
+                    deactivateSelectionTool();
+                } else {
+                    activateSelectionTool();
+                }
+            }
+        });
+    }
+
+    function importProject() {
+        const fileInput = document.getElementById('importFileInput');
+        if (fileInput) {
+            fileInput.click();
+        }
+    }
+
+    function loadProjectFromJSON(jsonData, skipConfirm = false) {
+        const hasExistingWork = shapes.length > 0;
+        if (hasExistingWork && !skipConfirm) {
+            showConfirmDialog(
+                "Load Project",
+                "You have unsaved work. Loading a new project will replace your current work. Are you sure?",
+                () => {
+                    performLoadProject(jsonData);
+                },
+                () => {
+                    showToast("Import cancelled", 'I');
+                }
+            );
+            return;
+        }
+        performLoadProject(jsonData);
+    }
+
+    function performLoadProject(jsonData) {
+        try {
+            const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
+            if (!data.version || !data.settings || !data.shapes) {
+                showToast("Invalid project file format", 'E');
+                return false;
+            }
+
+            const oldShapes = [...shapes];
+            const oldSettings = JSON.parse(JSON.stringify(window.animationState.settings));
+            const oldDuration = window.animationState.duration;
+
+            shapes = [];
+
+            for (let shapeData of data.shapes) {
+                let newShape;
+                if (shapeData.type === 'group') {
+                    newShape = new Group(shapeData.name);
+                    newShape.x = shapeData.x;
+                    newShape.y = shapeData.y;
+                    newShape.rotation = shapeData.rotation;
+                    newShape.scaleX = shapeData.scaleX;
+                    newShape.scaleY = shapeData.scaleY;
+                    newShape.skewX = shapeData.skewX;
+                    newShape.skewY = shapeData.skewY;
+                    newShape.pivotX = shapeData.pivotX;
+                    newShape.pivotY = shapeData.pivotY;
+                    newShape.opacity = shapeData.opacity;
+                    newShape.color = shapeData.color;
+                    newShape.borderColor = shapeData.borderColor;
+                    newShape.borderWidth = shapeData.borderWidth;
+                    newShape.shadowColor = shapeData.shadowColor;
+                    newShape.shadowBlur = shapeData.shadowBlur;
+                    newShape.shadowOffsetX = shapeData.shadowOffsetX;
+                    newShape.shadowOffsetY = shapeData.shadowOffsetY;
+                    newShape.shadowOpacity = shapeData.shadowOpacity;
+                    newShape.expanded = shapeData.expanded;
+                    if (shapeData.customName) newShape.customName = shapeData.customName;
+
+                    if (shapeData.children) {
+                        for (let childData of shapeData.children) {
+                            const child = recreateShape(childData);
+                            if (child) {
+                                child.parentGroup = newShape;
+                                newShape.children.push(child);
+                            }
+                        }
+                    }
+                } else if (shapeData.type === 'drawing') {
+                    newShape = new Shape('drawing', shapeData.x, shapeData.y, shapeData.size);
+                    newShape.strokesData = shapeData.strokesData || [];
+                    newShape.strokeFillColors = shapeData.strokeFillColors || [];
+                    newShape.isDrawing = true;
+                    newShape.finished = true;
+                    newShape.editable = false;
+                    if (shapeData.customName) newShape.customName = shapeData.customName;
+                } else {
+                    newShape = recreateShape(shapeData);
+                    if (shapeData.customName) newShape.customName = shapeData.customName;
+                }
+
+                if (newShape) {
+                    if (shapeData.keyframes && shapeData.keyframes.length > 0) {
+                        newShape.keyframes = shapeData.keyframes;
+                    }
+                    shapes.push(newShape);
+                }
+            }
+
+            window.animationState.settings = data.settings;
+
+            let maxTime = 0;
+            for (let shape of shapes) {
+                for (let kf of shape.keyframes) {
+                    if (kf.time > maxTime) {
+                        maxTime = kf.time;
+                    }
+                }
+            }
+            window.animationState.duration = Math.max(60, maxTime + (1 / window.animationState.fps));
+
+            if (typeof updateGlobalDuration === 'function') {
+                updateGlobalDuration(window.animationState.duration);
+            }
+
+            if (shapeManager && typeof shapeManager.buildTrack === 'function') {
+                for (let shape of shapes) {
+                    shapeManager.buildTrack(shape);
+                }
+
+                shapeManager.shapes = shapes;
+            }
+
+            if (typeof initCanvas === 'function') {
+                initCanvas();
+            }
+            if (typeof rebuildTracks === 'function') {
+                rebuildTracks();
+            }
+            if (typeof drawTimelineRuler === 'function') {
+                drawTimelineRuler();
+            }
+            if (typeof updateTimelineSize === 'function') {
+                updateTimelineSize();
+            }
+            if (typeof drawAll === 'function') {
+                drawAll();
+            }
+            if (typeof clearSelection === 'function') {
+                clearSelection();
+            }
+            if (typeof window.seekAnimation === 'function') {
+                window.seekAnimation(0);
+            }
+            if (typeof updateUndoRedoButtons === 'function') {
+                updateUndoRedoButtons();
+            }
+
+            if (window.undoManager) {
+                const importCommand = {
+                    execute: () => {},
+                    undo: () => {
+                        shapes = oldShapes;
+                        window.animationState.settings = oldSettings;
+                        window.animationState.duration = oldDuration;
+                        if (shapeManager) shapeManager.shapes = shapes;
+                        if (typeof initCanvas === 'function') initCanvas();
+                        if (typeof rebuildTracks === 'function') rebuildTracks();
+                        if (typeof drawTimelineRuler === 'function') drawTimelineRuler();
+                        if (typeof updateTimelineSize === 'function') updateTimelineSize();
+                        if (typeof drawAll === 'function') drawAll();
+                        if (typeof clearSelection === 'function') clearSelection();
+                        if (typeof window.seekAnimation === 'function') window.seekAnimation(0);
+                        showToast("Import undone", 'I');
+                    }
+                };
+                window.undoManager.execute(importCommand);
+            }
+
+            showToast(`Project loaded successfully! Duration: ${window.animationState.duration.toFixed(2)}s`, 'S');
+            return true;
+
+        } catch (error) {
+            console.error("Import error:", error);
+            showToast("Failed to load project: " + error.message, 'E');
+            return false;
+        }
+    }
+
+    function recreateShape(shapeData) {
+        const shape = new Shape(shapeData.type, shapeData.x, shapeData.y, shapeData.size);
+        const props = ['rotation', 'scaleX', 'scaleY', 'skewX', 'skewY', 'pivotX', 'pivotY',
+            'opacity', 'color', 'borderWidth', 'borderColor', 'borderOffset', 'borderBlur',
+            'shadowColor', 'shadowBlur', 'shadowOffsetX', 'shadowOffsetY', 'shadowOpacity',
+            'text', 'fontSize', 'fontFamily', 'filterBrightness', 'filterContrast',
+            'filterSaturation', 'filterBlur', 'bgImage', 'bgFit', 'bgOffsetX', 'bgOffsetY',
+            'bgScale', 'cornerRadius', 'sides', 'finished', 'editable'
+        ];
+        for (let prop of props) {
+            if (shapeData[prop] !== undefined) {
+                shape[prop] = shapeData[prop];
+            }
+        }
+        if (shapeData.points) {
+            shape.points = JSON.parse(JSON.stringify(shapeData.points));
+        }
+        if (shapeData.segments) {
+            shape.segments = JSON.parse(JSON.stringify(shapeData.segments));
+        }
+        if (shapeData.keyframes && shapeData.keyframes.length > 0) {
+            shape.keyframes = JSON.parse(JSON.stringify(shapeData.keyframes));
+        } else {
+            shape.keyframes = [];
+        }
+        if (shapeData.bgImage) {
+            shape.bgImage = shapeData.bgImage;
+            const img = new Image();
+            img.src = shapeData.bgImage;
+            shape.bgImageObj = img;
+        }
+        if (shapeData.imageObj && shapeData.imageObj.src) {
+            const img = new Image();
+            img.src = shapeData.imageObj.src;
+            shape.imageObj = img;
+        }
+        return shape;
+    }
+
+    function handleImportFile(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            loadProjectFromJSON(e.target.result);
+        };
+        reader.onerror = () => {
+            showToast("Error reading file", 'E');
+        };
+        reader.readAsText(file);
+        event.target.value = '';
+    }
+
+    function verifyKeyframesAfterImport() {
+        console.log("=== Verifying imported project ===");
+        console.log("Total shapes:", shapes.length);
+        console.log("Duration:", window.animationState.duration);
+        for (let i = 0; i < shapes.length; i++) {
+            const shape = shapes[i];
+            console.log(`Shape ${i+1} (${shape.type}): ${shape.keyframes.length} keyframes`);
+            if (shape.keyframes.length > 0) {
+                console.log("  Keyframes:", shape.keyframes.map(kf => kf.time.toFixed(2)).join(", "));
+            }
+        }
+        if (window.animationState.duration === 0) {
+            console.warn("WARNING: Duration is 0! No keyframes found or duration not calculated.");
+        }
+    }
+    document.getElementById('btnImportProject') ?.addEventListener('click', importProject);
+    document.getElementById('importFileInput') ?.addEventListener('change', handleImportFile);
+
+    function initDragAndDropImport() {
+        const container = document.getElementById('animContainer');
+        container.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            container.style.opacity = '0.7';
+        });
+        container.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            container.style.opacity = '1';
+        });
+        container.addEventListener('drop', (e) => {
+            e.preventDefault();
+            container.style.opacity = '1';
+            const file = e.dataTransfer.files[0];
+            if (file && file.name.endsWith('.json')) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    if (shapes.length > 0) {
+                        showConfirmDialog(
+                            "Load Project",
+                            "You have unsaved work. Loading a new project will replace your current work. Are you sure?",
+                            () => {
+                                loadProjectFromJSON(event.target.result, true);
+                            },
+                            () => {
+                                showToast("Import cancelled", 'I');
+                            }
+                        );
+                    } else {
+                        loadProjectFromJSON(event.target.result, true);
+                    }
+                };
+                reader.readAsText(file);
+            } else {
+                showToast("Please drop a JSON project file", 'I');
+            }
+        });
+    }
+
+    function clearAllSelections() {
+        for (let shape of shapes) {
+            shape.selected = false;
+        }
+        selectedShapes = [];
+        selectedShape = null;
+        if (shapeManager) shapeManager.setSelectedShape(null);
+
+        drawAll();
+    }
+
+    function initTimelineAutoExtend() {
+        timelineTracksWrapper.addEventListener('scroll', () => {
+            if (!autoExtendEnabled) return;
+
+            const scrollLeft = timelineTracksWrapper.scrollLeft;
+            const scrollWidth = timelineTracksWrapper.scrollWidth;
+            const clientWidth = timelineTracksWrapper.clientWidth;
+
+            if (scrollLeft + clientWidth >= scrollWidth - autoExtendThreshold) {
+                extendTimeline();
+            }
+        });
+    }
+
+    function extendTimeline() {
+        const currentDuration = window.animationState.duration;
+        const newDuration = currentDuration + 60;
+
+        window.animationState.duration = newDuration;
+
+        updateTimelineSize();
+        drawTimelineRuler();
+        updateTimelineUI();
+
+        if (loopEnabled) {
+            loopEndTime = newDuration;
+            drawTimelineRuler();
+        }
+
+        if (!window._extendingTimeline) {
+            window._extendingTimeline = true;
+            setTimeout(() => {
+                window._extendingTimeline = false;
+            }, 1000);
+        }
+    }
+
+    const btnAutoExtend = document.getElementById('btnAutoExtend');
+    if (btnAutoExtend) {
+        btnAutoExtend.addEventListener('click', () => {
+            autoExtendEnabled = !autoExtendEnabled;
+            if (autoExtendEnabled) {
+                btnAutoExtend.classList.add('mode-active');
+                btnAutoExtend.style.color = 'var(--accent)';
+                showToast("Auto-extend timeline ON", 'S');
+            } else {
+                btnAutoExtend.classList.remove('mode-active');
+                btnAutoExtend.style.color = '';
+                showToast("Auto-extend timeline OFF", 'I');
+            }
+        });
+
+        if (autoExtendEnabled) {
+            btnAutoExtend.classList.add('mode-active');
+            btnAutoExtend.style.color = 'var(--accent)';
+        }
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
         const btnPencil = document.getElementById('btnPencil');
         const btnBrush = document.getElementById('btnBrush');
@@ -618,6 +1586,8 @@
         const btnCancelDrawing = document.getElementById('btnCancelDrawing');
         const strokeColorPicker = document.getElementById('strokeColorPicker');
         const easingSelect = document.getElementById('easingSelect');
+        playerTime.style.bottom = '45px';
+        timelineContainer.style.height = '40px';
         initCanvas();
         shapeManager = new ShapeManager(shapes, drawAll, () => window.animationState.settings, updateGlobalDuration);
         drawTimelineRuler();
@@ -625,45 +1595,46 @@
         updateTimelineUI();
         updateUndoRedoButtons();
         updateTimelineSize();
+        initTimelineRulerEvents();
         setMode('object');
         window.Shape = Shape;
         initFillBucketTool();
         initDrawingCanvas();
-        playerTime.style.bottom = '45px';
-        timelineContainer.style.height = '40px';
+        updateSoloModeStatus();
+        //initTimelineAutoExtend();
         const btnGroup = document.getElementById('btnGroup');
         const btnUngroup = document.getElementById('btnUngroup');
-        if(btnGroup) {
+        if (btnGroup) {
             btnGroup.addEventListener('click', groupSelected);
         }
-        if(btnUngroup) {
+        if (btnUngroup) {
             btnUngroup.addEventListener('click', ungroupSelected);
         }
-        if(btnPencil) {
+        if (btnPencil) {
             btnPencil.addEventListener('click', () => setDrawingTool('pencil'));
         }
-        if(btnBrush) {
+        if (btnBrush) {
             btnBrush.addEventListener('click', () => setDrawingTool('brush'));
         }
-        if(btnEraser) {
+        if (btnEraser) {
             btnEraser.addEventListener('click', () => setDrawingTool('eraser'));
         }
-        if(btnFinishDrawing) {
+        if (btnFinishDrawing) {
             btnFinishDrawing.addEventListener('click', () => {
                 finishDrawing();
             });
         }
-        if(btnCancelDrawing) {
+        if (btnCancelDrawing) {
             btnCancelDrawing.addEventListener('click', () => {
                 cancelDrawing();
                 setDrawingTool(null);
             });
         }
-        if(strokeColorPicker) {
+        if (strokeColorPicker) {
             strokeColorPicker.addEventListener('change', (e) => updateStrokeColor(e.target.value));
         }
         const strokeWidthContainer = document.getElementById('strokeWidthContainer');
-        if(strokeWidthContainer) {
+        if (strokeWidthContainer) {
             const strokeWidthSlider = createRNSlider({
                 label: 'Width',
                 value: 2,
@@ -678,7 +1649,7 @@
             strokeWidthContainer.appendChild(strokeWidthSlider);
         }
         const strokeOpacityContainer = document.getElementById('strokeOpacityContainer');
-        if(strokeOpacityContainer) {
+        if (strokeOpacityContainer) {
             const strokeOpacitySlider = createRNSlider({
                 label: 'Opacity',
                 value: 1,
@@ -693,7 +1664,7 @@
             strokeOpacityContainer.appendChild(strokeOpacitySlider);
         }
         const eraserSizeContainer = document.getElementById('eraserSizeContainer');
-        if(eraserSizeContainer) {
+        if (eraserSizeContainer) {
             const eraserSizeSlider = createRNSlider({
                 label: 'Size',
                 value: 20,
@@ -704,12 +1675,12 @@
                 width: 280,
                 height: 50,
                 onChange: (v) => {
-                    if(typeof updateEraserSize === 'function') updateEraserSize(v);
+                    if (typeof updateEraserSize === 'function') updateEraserSize(v);
                 }
             });
             eraserSizeContainer.appendChild(eraserSizeSlider);
         }
-        if(easingSelect) {
+        if (easingSelect) {
             easingSelect.addEventListener('change', (e) => {
                 window.animationState.settings.easing = e.target.value;
                 shapes.forEach(shape => shapeManager.buildTrack(shape));
@@ -717,7 +1688,7 @@
             });
         }
         const brushSpacingContainer = document.getElementById('brushSpacingContainer');
-        if(brushSpacingContainer) {
+        if (brushSpacingContainer) {
             const brushSpacingSlider = createRNSlider({
                 label: 'Spacing',
                 value: 5,
@@ -732,7 +1703,7 @@
             brushSpacingContainer.appendChild(brushSpacingSlider);
         }
         const glowIntensityContainer = document.getElementById('glowIntensityContainer');
-        if(glowIntensityContainer) {
+        if (glowIntensityContainer) {
             const glowIntensitySlider = createRNSlider({
                 label: 'Intensity',
                 value: 10,
@@ -757,7 +1728,7 @@
             height: 50,
             onChange: (v) => setMinTaperWidth(v)
         });
-        document.getElementById('minTaperWidthSlider')?.appendChild(minTaperWidthSlider);
+        document.getElementById('minTaperWidthSlider') ?.appendChild(minTaperWidthSlider);
         const maxTaperWidthSlider = createRNSlider({
             label: 'End Width',
             value: 20,
@@ -769,15 +1740,15 @@
             height: 50,
             onChange: (v) => setMaxTaperWidth(v)
         });
-        document.getElementById('maxTaperWidthSlider')?.appendChild(maxTaperWidthSlider);
+        document.getElementById('maxTaperWidthSlider') ?.appendChild(maxTaperWidthSlider);
         const stabilizationSlider = document.getElementById('stabilizationSlider');
-        if(stabilizationSlider) {
+        if (stabilizationSlider) {
             stabilizationSlider.addEventListener('input', (e) => {
                 setStabilizationLevel(e.target.value);
             });
         }
         const stabilizationSliderContainer = document.getElementById('stabilizationSliderContainer');
-        if(stabilizationSliderContainer) {
+        if (stabilizationSliderContainer) {
             const stabilizationSlider = createRNSlider({
                 label: 'Stabilization',
                 value: stabilizationLevel || 5,
@@ -788,7 +1759,7 @@
                 width: 280,
                 height: 50,
                 onChange: (v) => {
-                    if(typeof setStabilizationLevel === 'function') {
+                    if (typeof setStabilizationLevel === 'function') {
                         setStabilizationLevel(v);
                     }
                 }
@@ -796,30 +1767,30 @@
             stabilizationSliderContainer.appendChild(stabilizationSlider);
         }
         const smoothingSelect = document.getElementById('smoothingSelect');
-        if(smoothingSelect) {
+        if (smoothingSelect) {
             smoothingSelect.addEventListener('change', (e) => {
                 setSmoothingAlgorithm(e.target.value);
             });
         }
         initDragAndDropImport();
-        
+
         const btnHelp = document.getElementById('btnHelp');
         const helpModal = document.getElementById('helpModal');
         const closeHelpBtn = document.getElementById('closeHelpBtn');
-        
+
         if (btnHelp) {
             btnHelp.addEventListener('click', () => {
                 loadHelpContent();
                 openPopup(helpModal);
             });
         }
-        
+
         if (closeHelpBtn) {
             closeHelpBtn.addEventListener('click', () => {
                 helpModal.classList.remove('open');
             });
         }
-        
+
         if (helpModal) {
             helpModal.addEventListener('click', (e) => {
                 if (e.target === helpModal) {
@@ -827,23 +1798,23 @@
                 }
             });
         }
-        
+
         const btnAbout = document.getElementById('btnAbout');
         const aboutModal = document.getElementById('aboutModal');
         const closeAboutBtn = document.getElementById('closeAboutBtn');
-        
+
         if (btnAbout) {
             btnAbout.addEventListener('click', () => {
                 openPopup(aboutModal);
             });
         }
-        
+
         if (closeAboutBtn) {
             closeAboutBtn.addEventListener('click', () => {
                 aboutModal.classList.remove('open');
             });
         }
-        
+
         if (aboutModal) {
             aboutModal.addEventListener('click', (e) => {
                 if (e.target === aboutModal) {
@@ -851,24 +1822,24 @@
                 }
             });
         }
-        
+
         const btnWebsite = document.getElementById('btnWebsite');
         const btnReportIssue = document.getElementById('btnReportIssue');
-        
+
         if (btnWebsite) {
             btnWebsite.addEventListener('click', () => {
-                window.open('https://your-website.com', '_blank');
+                window.open('https://rnstudio.phavio.com', '_blank');
             });
         }
-        
+
         if (btnReportIssue) {
             btnReportIssue.addEventListener('click', () => {
-                window.open('https://github.com/yourusername/mr-animator/issues', '_blank');
+                window.open('https://github.com/MRaheem99/mr-studio/issues', '_blank');
             });
         }
-        
+
         const strokeHardnessContainer = document.getElementById('strokeHardnessContainer');
-        if(strokeHardnessContainer) {
+        if (strokeHardnessContainer) {
             const hardnessSlider = createRNSlider({
                 label: 'Hardness',
                 value: 100,
@@ -879,14 +1850,14 @@
                 width: 280,
                 height: 50,
                 onChange: (v) => {
-                    if(typeof updateStrokeHardness === 'function') updateStrokeHardness(v);
+                    if (typeof updateStrokeHardness === 'function') updateStrokeHardness(v);
                 }
             });
             strokeHardnessContainer.appendChild(hardnessSlider);
         }
-        
+
         const eraserHardnessContainer = document.getElementById('eraserHardnessContainer');
-        if(eraserHardnessContainer) {
+        if (eraserHardnessContainer) {
             const eraserHardnessSlider = createRNSlider({
                 label: 'Hardness',
                 value: 100,
@@ -897,434 +1868,36 @@
                 width: 280,
                 height: 50,
                 onChange: (v) => {
-                    if(typeof updateEraserHardness === 'function') updateEraserHardness(v);
+                    if (typeof updateEraserHardness === 'function') updateEraserHardness(v);
                 }
             });
             eraserHardnessContainer.appendChild(eraserHardnessSlider);
         }
+
+        const fontSelect = document.getElementById('fontFamilySelect');
+        if (fontSelect && typeof FONT_LIST !== 'undefined') {
+            fontSelect.innerHTML = '';
+
+            const systemGroup = document.createElement('optgroup');
+            systemGroup.label = 'System Fonts (Web Safe)';
+
+            const googleGroup = document.createElement('optgroup');
+            googleGroup.label = 'Google Fonts';
+
+            FONT_LIST.forEach(font => {
+                const option = document.createElement('option');
+                option.value = font.value;
+                option.textContent = font.display;
+
+                if (font.category === 'system') {
+                    systemGroup.appendChild(option);
+                } else {
+                    googleGroup.appendChild(option);
+                }
+            });
+
+            fontSelect.appendChild(systemGroup);
+            fontSelect.appendChild(googleGroup);
+        }
+
     });
-    
-    function activateSelectionTool() {
-        if (typeof setDrawingTool === 'function') {
-            finishDrawing();
-            cancelDrawing();
-            setDrawingTool(null);
-        }
-        
-        if (typeof setFillBucketTool === 'function') {
-            setFillBucketTool(false);
-        }
-        penMode = false;
-        isEditingPolyline = false;
-        isEditingPoint = false;
-        
-        canvas.style.cursor = 'default';
-        
-        selectionToolActive = true;
-        
-        const btnSelectionTool = document.getElementById('btnSelectionTool');
-        const btnModeObject = document.getElementById('btnModeObject');
-        const btnModeCanvas = document.getElementById('btnModeCanvas');
-        const btnPencil = document.getElementById('btnPencil');
-        const btnBrush = document.getElementById('btnBrush');
-        const btnEraser = document.getElementById('btnEraser');
-        
-        if (btnSelectionTool) btnSelectionTool.classList.add('mode-active');
-        if (btnModeObject) btnModeObject.classList.remove('mode-active');
-        if (btnModeCanvas) btnModeCanvas.classList.remove('mode-active');
-        if (btnPencil) btnPencil.classList.remove('mode-active');
-        if (btnBrush) btnBrush.classList.remove('mode-active');
-        if (btnEraser) btnEraser.classList.remove('mode-active');
-        
-        const brushTypeSelector = document.getElementById('brushTypeSelector');
-        if (brushTypeSelector) brushTypeSelector.style.display = 'none';
-    }
-    
-    function deactivateSelectionTool() {
-        selectionToolActive = false;
-        const btnSelectionTool = document.getElementById('btnSelectionTool');
-        if (btnSelectionTool) btnSelectionTool.classList.remove('mode-active');
-    }
-    
-    const originalSetMode = setMode;
-    setMode = function(mode) {
-        if (mode === 'object') {
-            activateSelectionTool();
-        } else if (mode === 'canvas') {
-            deactivateSelectionTool();
-        }
-        if (originalSetMode) originalSetMode(mode);
-    };
-    
-    const btnSelectionTool = document.getElementById('btnSelectionTool');
-    if (btnSelectionTool) {
-        btnSelectionTool.addEventListener('click', () => {
-            if(selectionToolActive){ 
-                deactivateSelectionTool();
-            } else {
-                if (viewport.mode !== 'object') {
-                    setMode('object');
-                    deactivateSelectionTool();
-                } else {
-                    activateSelectionTool();
-                }
-            }
-        });
-    }
-
-    function importProject() {
-        const fileInput = document.getElementById('importFileInput');
-        if(fileInput) {
-            fileInput.click();
-        }
-    }
-
-    function loadProjectFromJSON(jsonData, skipConfirm = false) {
-        const hasExistingWork = shapes.length > 0;
-        if(hasExistingWork && !skipConfirm) {
-            showConfirmDialog(
-                "Load Project",
-                "You have unsaved work. Loading a new project will replace your current work. Are you sure?",
-                () => {
-                    performLoadProject(jsonData);
-                },
-                () => {
-                    showToast("Import cancelled", 'I');
-                }
-            );
-            return;
-        }
-        performLoadProject(jsonData);
-    }
-
-    function showConfirmDialog(title, message, onConfirm, onCancel) {
-        const popups = document.querySelectorAll('.modal-overlay');
-        popups.forEach(element => {
-            element.style.zIndex = 50;
-        });
-        let confirmModal = document.getElementById('confirmDialog');
-        if(!confirmModal) {
-            confirmModal = document.createElement('div');
-            confirmModal.id = 'confirmDialog';
-            confirmModal.className = 'modal-overlay';
-            confirmModal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        `;
-            confirmModal.style.zIndex = (popups.length * 50) + 1000;
-            confirmModal.classList.add('open');
-            confirmModal.innerHTML = `
-            <div class="modal-content" style="max-width: 400px;">
-                <div class="popup-header">
-                    <span class="popup-title" id="confirmTitle">Confirm</span>
-                    <button class="close-popup-btn" id="closeConfirmBtn"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-                <div class="popup-body">
-                    <p id="confirmMessage" style="margin-bottom: 20px;">Are you sure?</p>
-                    <div class="btn-grid" style="grid-template-columns: 1fr 1fr;">
-                        <button class="action-btn" id="confirmCancelBtn">Cancel</button>
-                        <button class="action-btn btn-primary" id="confirmOkBtn">OK</button>
-                    </div>
-                </div>
-            </div>
-        `;
-            document.body.appendChild(confirmModal);
-        }
-        document.getElementById('confirmTitle').textContent = title;
-        document.getElementById('confirmMessage').textContent = message;
-        const closeBtn = document.getElementById('closeConfirmBtn');
-        const cancelBtn = document.getElementById('confirmCancelBtn');
-        const okBtn = document.getElementById('confirmOkBtn');
-        const newCloseBtn = closeBtn.cloneNode(true);
-        const newCancelBtn = cancelBtn.cloneNode(true);
-        const newOkBtn = okBtn.cloneNode(true);
-        closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
-        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
-        okBtn.parentNode.replaceChild(newOkBtn, okBtn);
-        const closeDialog = () => {
-            confirmModal.remove();
-            if(onCancel) onCancel();
-        };
-        newCloseBtn.addEventListener('click', closeDialog);
-        newCancelBtn.addEventListener('click', closeDialog);
-        newOkBtn.addEventListener('click', () => {
-            confirmModal.remove();
-            if(onConfirm) onConfirm();
-        });
-        confirmModal.addEventListener('click', (e) => {
-            if(e.target === confirmModal) {
-                closeDialog();
-            }
-        });
-        confirmModal.classList.add('open');
-    }
-
-    function closeDialog() {
-        const confDlg = document.getElementById('confirmDialog');
-        if(confDlg) confDlg.remove();
-    }
-
-    function performLoadProject(jsonData) {
-        try {
-            const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
-            if(!data.version || !data.settings || !data.shapes) {
-                showToast("Invalid project file format", 'E');
-                return false;
-            }
-            const oldShapes = [...shapes];
-            const oldSettings = JSON.parse(JSON.stringify(window.animationState.settings));
-            const oldDuration = window.animationState.duration;
-            shapes = [];
-            for(let shapeData of data.shapes) {
-                let newShape;
-                if(shapeData.type === 'group') {
-                    newShape = new Group(shapeData.name);
-                    newShape.x = shapeData.x;
-                    newShape.y = shapeData.y;
-                    newShape.rotation = shapeData.rotation;
-                    newShape.scaleX = shapeData.scaleX;
-                    newShape.scaleY = shapeData.scaleY;
-                    newShape.skewX = shapeData.skewX;
-                    newShape.skewY = shapeData.skewY;
-                    newShape.pivotX = shapeData.pivotX;
-                    newShape.pivotY = shapeData.pivotY;
-                    newShape.opacity = shapeData.opacity;
-                    newShape.color = shapeData.color;
-                    newShape.borderColor = shapeData.borderColor;
-                    newShape.borderWidth = shapeData.borderWidth;
-                    newShape.shadowColor = shapeData.shadowColor;
-                    newShape.shadowBlur = shapeData.shadowBlur;
-                    newShape.shadowOffsetX = shapeData.shadowOffsetX;
-                    newShape.shadowOffsetY = shapeData.shadowOffsetY;
-                    newShape.shadowOpacity = shapeData.shadowOpacity;
-                    newShape.expanded = shapeData.expanded;
-                    if(shapeData.children) {
-                        for(let childData of shapeData.children) {
-                            const child = recreateShape(childData);
-                            if(child) {
-                                child.parentGroup = newShape;
-                                newShape.children.push(child);
-                            }
-                        }
-                    }
-                } else if(shapeData.type === 'drawing') {
-                    newShape = new Shape('drawing', shapeData.x, shapeData.y, shapeData.size);
-                    newShape.segments = shapeData.segments || [];
-                    newShape.segmentColors = shapeData.segmentColors || [];
-                    newShape.segmentWidths = shapeData.segmentWidths || [];
-                    newShape.segmentOpacities = shapeData.segmentOpacities || [];
-                    newShape.segmentBrushTypes = shapeData.segmentBrushTypes || [];
-                    newShape.segmentTaperStarts = shapeData.segmentTaperStarts || [];
-                    newShape.segmentTaperEnds = shapeData.segmentTaperEnds || [];
-                    newShape.isDrawing = true;
-                    newShape.finished = true;
-                    newShape.editable = false;
-                } else {
-                    newShape = recreateShape(shapeData);
-                }
-                if(newShape) {
-                    if(shapeData.keyframes && shapeData.keyframes.length > 0) {
-                        newShape.keyframes = shapeData.keyframes;
-                    }
-                    shapes.push(newShape);
-                }
-            }
-            window.animationState.settings = data.settings;
-            let maxTime = 0;
-            for(let shape of shapes) {
-                for(let kf of shape.keyframes) {
-                    if(kf.time > maxTime) {
-                        maxTime = kf.time;
-                    }
-                }
-            }
-            window.animationState.duration = maxTime + (1 / window.animationState.fps);
-            if(typeof updateGlobalDuration === 'function') {
-                updateGlobalDuration(window.animationState.duration);
-            }
-            if(shapeManager && typeof shapeManager.buildTrack === 'function') {
-                for(let shape of shapes) {
-                    shapeManager.buildTrack(shape);
-                }
-            }
-            if(typeof initCanvas === 'function') {
-                initCanvas();
-            }
-            if(typeof rebuildTracks === 'function') {
-                rebuildTracks();
-            }
-            if(typeof drawTimelineRuler === 'function') {
-                drawTimelineRuler();
-            }
-            if(typeof updateTimelineSize === 'function') {
-                updateTimelineSize();
-            }
-            if(typeof drawAll === 'function') {
-                drawAll();
-            }
-            if(typeof clearSelection === 'function') {
-                clearSelection();
-            }
-            if(typeof window.seekAnimation === 'function') {
-                window.seekAnimation(0);
-            }
-            if(typeof updateUndoRedoButtons === 'function') {
-                updateUndoRedoButtons();
-            }
-            if(window.undoManager) {
-                const importCommand = {
-                    execute: () => {},
-                    undo: () => {
-                        shapes = oldShapes;
-                        window.animationState.settings = oldSettings;
-                        window.animationState.duration = oldDuration;
-                        if(typeof initCanvas === 'function') initCanvas();
-                        if(typeof rebuildTracks === 'function') rebuildTracks();
-                        if(typeof drawTimelineRuler === 'function') drawTimelineRuler();
-                        if(typeof updateTimelineSize === 'function') updateTimelineSize();
-                        if(typeof drawAll === 'function') drawAll();
-                        if(typeof clearSelection === 'function') clearSelection();
-                        if(typeof window.seekAnimation === 'function') window.seekAnimation(0);
-                        showToast("Import undone", 'I');
-                    }
-                };
-                window.undoManager.execute(importCommand);
-            }
-            showToast(`Project loaded successfully! Duration: ${window.animationState.duration.toFixed(2)}s`, 'S');
-            return true;
-        } catch (error) {
-            console.error("Import error:", error);
-            showToast("Failed to load project: " + error.message, 'E');
-            return false;
-        }
-    }
-
-    function recreateShape(shapeData) {
-        const shape = new Shape(shapeData.type, shapeData.x, shapeData.y, shapeData.size);
-        const props = ['rotation', 'scaleX', 'scaleY', 'skewX', 'skewY', 'pivotX', 'pivotY',
-            'opacity', 'color', 'borderWidth', 'borderColor', 'borderOffset', 'borderBlur',
-            'shadowColor', 'shadowBlur', 'shadowOffsetX', 'shadowOffsetY', 'shadowOpacity',
-            'text', 'fontSize', 'fontFamily', 'filterBrightness', 'filterContrast',
-            'filterSaturation', 'filterBlur', 'bgImage', 'bgFit', 'bgOffsetX', 'bgOffsetY',
-            'bgScale', 'cornerRadius', 'sides', 'finished', 'editable'
-        ];
-        for(let prop of props) {
-            if(shapeData[prop] !== undefined) {
-                shape[prop] = shapeData[prop];
-            }
-        }
-        if(shapeData.points) {
-            shape.points = JSON.parse(JSON.stringify(shapeData.points));
-        }
-        if(shapeData.segments) {
-            shape.segments = JSON.parse(JSON.stringify(shapeData.segments));
-        }
-        if(shapeData.keyframes && shapeData.keyframes.length > 0) {
-            shape.keyframes = JSON.parse(JSON.stringify(shapeData.keyframes));
-        } else {
-            shape.keyframes = [];
-        }
-        if(shapeData.bgImage) {
-            shape.bgImage = shapeData.bgImage;
-            const img = new Image();
-            img.src = shapeData.bgImage;
-            shape.bgImageObj = img;
-        }
-        if(shapeData.imageObj && shapeData.imageObj.src) {
-            const img = new Image();
-            img.src = shapeData.imageObj.src;
-            shape.imageObj = img;
-        }
-        return shape;
-    }
-
-    function handleImportFile(event) {
-        const file = event.target.files[0];
-        if(!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            loadProjectFromJSON(e.target.result);
-        };
-        reader.onerror = () => {
-            showToast("Error reading file", 'E');
-        };
-        reader.readAsText(file);
-        event.target.value = '';
-    }
-
-    function verifyKeyframesAfterImport() {
-        console.log("=== Verifying imported project ===");
-        console.log("Total shapes:", shapes.length);
-        console.log("Duration:", window.animationState.duration);
-        for(let i = 0; i < shapes.length; i++) {
-            const shape = shapes[i];
-            console.log(`Shape ${i+1} (${shape.type}): ${shape.keyframes.length} keyframes`);
-            if(shape.keyframes.length > 0) {
-                console.log("  Keyframes:", shape.keyframes.map(kf => kf.time.toFixed(2)).join(", "));
-            }
-        }
-        if(window.animationState.duration === 0) {
-            console.warn("WARNING: Duration is 0! No keyframes found or duration not calculated.");
-        }
-    }
-    document.getElementById('btnImportProject')?.addEventListener('click', importProject);
-    document.getElementById('importFileInput')?.addEventListener('change', handleImportFile);
-
-    function initDragAndDropImport() {
-        const container = document.getElementById('animContainer');
-        container.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            container.style.opacity = '0.7';
-        });
-        container.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            container.style.opacity = '1';
-        });
-        container.addEventListener('drop', (e) => {
-            e.preventDefault();
-            container.style.opacity = '1';
-            const file = e.dataTransfer.files[0];
-            if(file && file.name.endsWith('.json')) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    if(shapes.length > 0) {
-                        showConfirmDialog(
-                            "Load Project",
-                            "You have unsaved work. Loading a new project will replace your current work. Are you sure?",
-                            () => {
-                                loadProjectFromJSON(event.target.result, true);
-                            },
-                            () => {
-                                showToast("Import cancelled", 'I');
-                            }
-                        );
-                    } else {
-                        loadProjectFromJSON(event.target.result, true);
-                    }
-                };
-                reader.readAsText(file);
-            } else {
-                showToast("Please drop a JSON project file", 'I');
-            }
-        });
-    }
-    
-    function clearAllSelections() {
-        for (let shape of shapes) {
-            shape.selected = false;
-        }
-        selectedShapes = [];
-        selectedShape = null;
-        if (shapeManager) shapeManager.setSelectedShape(null);
-        if (typeof updateSelectionDisplay === 'function') {
-            updateSelectionDisplay();
-        }
-        drawAll();
-    }
