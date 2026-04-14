@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MR Studio</title>
     <link href="./img/favicon.png" rel="icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Montserrat:wght@400;700&family=Poppins:wght@400;700&family=Playfair+Display:wght@400;700&family=Merriweather:wght@400;700&family=Pacifico&family=Lobster&family=Ubuntu:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="./css/styles.css">
 </head>
@@ -26,10 +29,11 @@
                 <div id="trackHeader">
                     <div class="playback-bar">
                         <div class="">
-                            <button class="player-btn" id="btnPlay"><i class="fa-solid fa-play"></i></button>
-                            <button class="player-btn" id="btnPause"><i class="fa-solid fa-pause"></i></button>
-                            <button class="player-btn" id="btnStop"><i class="fa-solid fa-stop"></i></button>
+                            <button class="player-btn" id="btnPlay" title="Play"><i class="fa-solid fa-play"></i></button>
+                            <button class="player-btn" id="btnPause" title="Pause"><i class="fa-solid fa-pause"></i></button>
+                            <button class="player-btn" id="btnStop" title="Stop"><i class="fa-solid fa-stop"></i></button>
                         </div>
+                        <div><button class="player-btn" id="btnAutoExtend" title="Auto-extend timeline"><i class="fa-solid fa-arrows-spin"></i></button></div>
                         <div>
                             <button class="player-btn" id="btnUndo" title="Undo (Ctrl+Z)"><i class="fa-solid fa-rotate-left"></i></button>
                             <button class="player-btn" id="btnRedo" title="Redo (Ctrl+Y)"><i class="fa-solid fa-rotate-right"></i></button>
@@ -37,7 +41,7 @@
                     </div>
                 </div>
                 
-                <canvas id="timelineRuler"></canvas>
+                <div id="ruler-container"><canvas id="timelineRuler"></canvas></div>
                 <div id="trackLabels"></div>
                 <div id="timelineTracksWrapper">
                     <div id="timelineTracks"></div>
@@ -70,6 +74,15 @@
                 <button class="icon-btn" id="btnAddShape" title="Add Shape"><i class="fa-solid fa-shapes"></i></button>
                 <button class="icon-btn" id="btnAddText" title="Add Text"><i class="fa-solid fa-font"></i></button>
                 <button class="icon-btn" id="btnAddImage" title="Import Image"><i class="fa-regular fa-image"></i></button>
+                <button class="icon-btn" id="btnLoadPreset" title="Load Shape Preset"><i class="fa-solid fa-folder-open"></i></button>
+                <button class="icon-btn" id="btnShapeLibrary" title="Shape Library"><i class="fa-solid fa-cubes"></i></button>
+            </div>
+            <div class="menu-group">
+                <span class="tool-label">Solo Mode</span>
+                <div id="soloModeStatus" style="font-size: 0.7rem; color: var(--accent); margin-top: 5px; display: none;">
+                    <i class="fa-solid fa-eye"></i> Solo: <span id="soloObjectName"></span>
+                    <button class="icon-btn" id="exitSoloMode" style="margin-left: 5px; padding: 2px 5px;">Exit</button>
+                </div>
             </div>
             <div class="menu-group">
                 <span class="form-label">Group Tools</span>
@@ -134,11 +147,11 @@
                 <div class="form-group" style="display: flex; gap: 15px; margin-bottom: 10px;">
                     <div class="">
                         <label class="tool-label">Stroke Color</label>
-                        <input type="color" id="strokeColorPicker" value="#00d4ff">
+                        <input type="color" id="strokeColorPicker" value="#0066ff">
                     </div>
                     <div class="">
                         <label class="tool-label">Fill Color</label>
-                        <input type="color" id="fillColorPicker" value="#00d4ff">
+                        <input type="color" id="fillColorPicker" value="#ff0066">
                     </div>
                 </div>
                 <div class="form-group">
@@ -214,7 +227,7 @@
                         </label>
                     </div>
                     <div style="font-size: 0.75rem; color: #666; margin-top: 5px;">
-                        * Duration = (Max Keyframes - 1) × Step
+                        * Duration = (Max Keyframes - 1) Ã— Step
                     </div>
                 </div>
                 
@@ -305,19 +318,60 @@
                     <div class="form-group"><label class="form-label">Font Size</label><div id="fontSizeContainer"></div></div>
                     <div class="form-group">
                         <label class="form-label">Font Family</label>
-                        <select id="fontFamilySelect"><option value="Arial">Arial</option>
-                            <option value="Times New Roman">Times New Roman</option>
-                            <option value="Courier New">Courier New</option>
-                        </select>
+                        <div style="display:flex;gap:4px;align-items:center;">
+                            <select id="fontFamilySelect" style="flex: 1;"></select>
+                            <button class="icon-btn" id="btnPrevFont" title="Previous Font"><i class="fa-solid fa-arrow-up"></i></button>
+                            <button class="icon-btn" id="btnNextFont" title="Next Font"><i class="fa-solid fa-arrow-down"></i></button>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="form-group" style="display:none;" id="imageInputGroup">
-                    <div class="section-title">Image Tools</div>
-                    <div class="form-group"><label class="form-label">Brightness</label><div id="imgBrightnessContainer"></div></div>
-                    <div class="form-group"><label class="form-label">Contrast</label><div id="imgContrastContainer"></div></div>
-                    <div class="form-group"><label class="form-label">Saturation</label><div id="imgSaturationContainer"></div></div>
-                    <div class="form-group"><label class="form-label">Blur</label><div id="imgBlurContainer"></div></div>
+                <div class="form-group" id="imageInputGroup" style="display:none;">
+                    <label class="form-label">Current Image</label>
+                    <div id="currentImagePreview" style="width: 100%; height: 80px; background: rgba(0,0,0,0.3); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; overflow: hidden;">
+                        <span style="color: #888;">No image</span>
+                    </div>
+                    <button class="action-btn" id="btnReplaceImage" style="margin-bottom: 10px;">
+                        <i class="fa-solid fa-arrow-rotate-right"></i> Replace Image
+                    </button>
+                    <button class="action-btn btn-danger" id="btnRemoveImage">
+                        <i class="fa-solid fa-trash"></i> Remove Image
+                    </button>
+                    <input type="file" id="replaceImageInput" accept="image/*" style="display: none;">
+    
+                    <div class="section-title">Image Filters</div>
+                    <div class="form-group">
+                        <label class="tool-label">Brightness</label>
+                        <div id="imgBrightnessContainer"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="tool-label">Contrast</label>
+                        <div id="imgContrastContainer"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="tool-label">Saturation</label>
+                        <div id="imgSaturationContainer"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="tool-label">Blur</label>
+                        <div id="imgBlurContainer"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="tool-label">Grayscale</label>
+                        <div id="imgGrayscaleContainer"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="tool-label">Sepia</label>
+                        <div id="imgSepiaContainer"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="tool-label">Hue Rotate</label>
+                        <div id="imgHueRotateContainer"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="tool-label">Invert</label>
+                        <div id="imgInvertContainer"></div>
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -387,7 +441,7 @@
                     </button>
                     <div id="smoothnessSliderContainer" style="margin-top: 10px;"></div>
                     <div style="font-size: 0.7rem; color: #666; margin-top: 5px; text-align: center;">
-                        💡 Adjust slider for live preview, click Apply to confirm
+                        ðŸ’¡ Adjust slider for live preview, click Apply to confirm
                     </div>
                 </div>
                 
@@ -403,9 +457,14 @@
                 
                 <div class="btn-grid">
                     <button class="action-btn" id="btnResetPivot"><i class="fa-solid fa-rotate-left"></i> Reset Pivot</button>
+                    <button class="action-btn" id="btnBringForward"><i class="fa-solid fa-layer-group"></i> Forward</button>
+                    <button class="action-btn" id="btnSendBackword"><i class="fa-solid fa-layer-group" style="transform: scaleY(-1);"></i> Backword</button>
                     <button class="action-btn" id="btnBringFront"><i class="fa-solid fa-layer-group"></i> Front</button>
                     <button class="action-btn" id="btnSendBack"><i class="fa-solid fa-layer-group" style="transform: scaleY(-1);"></i> Back</button>
+                    <button class="action-btn" id="btnFlipH"><i class="fa-solid fa-arrow-right-arrow-left"></i> Flip H</button>
+                    <button class="action-btn" id="btnFlipV"><i class="fa-solid fa-arrow-up-arrow-down"></i> Flip V</button>
                     <button class="action-btn" id="btnCopy"><i class="fa-regular fa-copy"></i> Copy</button>
+                    <button class="action-btn" id="btnSavePreset"><i class="fa-regular fa-floppy-disk"></i> Save Preset</button>
                     <button class="action-btn btn-danger" id="btnRemove"><i class="fa-solid fa-trash"></i> Delete</button>
                 </div>
             </div>
@@ -522,7 +581,6 @@
         </div>
     </div>
     
-    <!-- Help Modal -->
     <div class="modal-overlay" id="helpModal">
         <div class="modal-content" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
             <div class="popup-header">
@@ -530,7 +588,6 @@
                 <button class="close-popup-btn" id="closeHelpBtn"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="popup-body" style="max-height: 70vh; overflow-y: auto;">
-                <!-- Help content will be loaded here -->
                 <div id="helpContent">
                     <div style="text-align: center; padding: 20px;">
                         <i class="fa-solid fa-spinner fa-pulse"></i> Loading help content...
@@ -540,7 +597,6 @@
         </div>
     </div>
     
-    <!-- About Modal -->
     <div class="modal-overlay" id="aboutModal">
         <div class="modal-content" style="max-width: 500px;">
             <div class="popup-header">
@@ -570,12 +626,69 @@
         </div>
     </div>
     
+    <div class="modal-overlay" id="shapeLibraryModal">
+        <div class="modal-content" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
+            <div class="popup-header">
+                <span class="popup-title"><i class="fa-solid fa-cubes"></i> Shape Library</span>
+                <button class="close-popup-btn" id="closeLibraryBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="popup-body" id="shapeLibraryContainer" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="loadPresetModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="popup-header">
+                <span class="popup-title"><i class="fa-solid fa-folder-open"></i> Load Shape Preset</span>
+                <button class="close-popup-btn" id="closeLoadPresetBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="popup-body">
+                <input type="file" id="presetFileInput" accept=".json" style="display: none;">
+                <button class="action-btn btn-primary" id="btnChooseFile" style="margin-bottom: 15px;">
+                    <i class="fa-solid fa-file"></i> Choose JSON File
+                </button>
+                <div id="presetPreview" style="margin-top: 15px; text-align: center; min-height: 150px;">
+                    <canvas id="presetPreviewCanvas" width="200" height="200" style="background: #1a1a1a; border-radius: 8px;"></canvas>
+                    <p id="presetInfo" style="margin-top: 10px; color: var(--text-muted);"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="bookmarkMenuModal">
+        <div class="modal-content" style="max-width: 250px; position: absolute;">
+            <div class="popup-header">
+                <span class="popup-title"><i class="fa-solid fa-bookmark"></i> Bookmark Options</span>
+            </div>
+            <div class="popup-body">
+                <button class="action-btn" id="bookmarkSetLoopStart">
+                    <i class="fa-solid fa-play"></i> Set as Loop Start
+                </button>
+                <button class="action-btn" id="bookmarkSetLoopEnd">
+                    <i class="fa-solid fa-stop"></i> Set as Loop End
+                </button>
+                <button class="action-btn" id="clearLoop">
+                    <i class="fa-solid fa-stop"></i> Clear Loop
+                </button>
+                <button class="action-btn btn-danger" id="bookmarkRemove">
+                    <i class="fa-solid fa-trash"></i> Remove Bookmark
+                </button>
+                <button class="action-btn" id="bookmarkCancel">
+                    <i class="fa-solid fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <div id="toastContainer"></div>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="./js/lib/gif.js"></script>
 
     <script src="./js/globals.js"></script>
+    <script src="./js/tooltip.js"></script>
+    <script src="./js/mr-dialog.js"></script>
     <script src="./js/rn-slider.js"></script>
     <script src="./js/sliderAdapter.js"></script>
     <script src="./js/shape-manager.js"></script>
@@ -591,5 +704,6 @@
     <script src="./js/shortcuts.js"></script>
     <script src="./js/advanced-export.js"></script>
     <script src="./js/help-content.js"></script>
+    <script src="./js/shape-presets.js"></script>
 </body>
 </html>
