@@ -2,15 +2,17 @@
 
 # 🎨 MR Studio
 
-### Professional Browser-Based Animation Studio
+### Professional Web-Based 2D Javascript Animation Software
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/MRaheem99/mr-studio)](https://github.com/MRaheem99/mr-studio/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/MRaheem99/mr-studio)](https://github.com/MRaheem99/mr-studio/network)
 [![GitHub issues](https://img.shields.io/github/issues/MRaheem99/mr-studio)](https://github.com/MRaheem99/mr-studio/issues)
-[![GitHub release](https://img.shields.io/github/v/release/MRaheem99/mr-studio)](https://github.com/MRaheem99/mr-studio/releases)
+[![Built with JavaScript](https://img.shields.io/badge/Built%20with-JavaScript-F7DF1E.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 
-![MR Studio Demo](demo.gif)
+**A powerful, lightweight, web-based javascript 2D animation software for YouTubers, animation channels, and content creators**
+
+![MR Studio Banner](./images/banner.png)
 
 **Live Demo:** [https://MRaheem99.github.io/mr-studio](https://MRaheem99.github.io/mr-studio)
 
@@ -18,11 +20,117 @@
 
 ---
 
+## 📖 About MR Studio
+
+**MR Studio** is a **powerful animation software** built with **JavaScript** that runs entirely in your browser. It's a **lightweight**, **web-based 2D animation software** designed specifically for **YouTubers**, **animation channels**, and content creators who need to create stunning **YouTube videos** without expensive software.
+
+Whether you're creating explainer videos, animated intros, or full-length **YouTube videos**, MR Studio provides professional-grade tools in a lightweight package that runs on any device with a browser.
+
+### 🎯 Perfect for:
+- ✅ **YouTubers** creating animated content
+- ✅ **Animation channels** producing regular videos
+- ✅ **Content creators** making explainer videos
+- ✅ **Teachers** creating educational animations
+- ✅ **Marketers** producing promotional videos
+- ✅ **Hobbyists** learning animation
+
+---
+
+## ✨ Key Features
+
+### 🎯 Powerful Selection & Transformation
+- **Multi-Selection** - Select multiple objects with Shift/Ctrl+Click
+- **Marquee Selection** - Drag to select multiple objects
+- **Grouping** - Group objects together and transform as one
+- **Transform Handles** - Move, scale, rotate, skew with intuitive handles
+
+### ✏️ Professional Drawing Tools
+- **9 Brush Types** - Solid, Tapered, Dotted, Dashed, Wavy, Zigzag, Glow, Gradient, Texture
+- **Stroke Stabilization** - Smooth out shaky hand movements
+- **Stroke Hardness** - Control edge softness
+- **Eraser Tool** - Erase portions of drawings
+- **Fill Bucket** - Fill closed shapes with color
+
+### 🎬 Complete Animation System
+- **Keyframe Animation** - Professional keyframe timeline
+- **12 Easing Types** - Linear, Ease In/Out, Bounce, Elastic, and more
+- **Smooth Interpolation** - Automatic frame interpolation
+- **Group Animation** - Animate entire groups as one unit
+- **Loop Playback** - Perfect for YouTube video intros and outros
+
+### 🖌️ Extensive Shape Library
+- **Basic Shapes** - Square, Circle, Triangle, Line
+- **Polygons** - Pentagon, Star, Arrow, Custom Polygon
+- **Paths** - Bezier curves and paths
+- **Text** - Add and style text with multiple fonts
+- **Images** - Import and manipulate images
+
+### 🎨 Professional Styling
+- **Fill Colors** - Solid colors and gradients
+- **Border Controls** - Width, color, offset, blur
+- **Shadow Effects** - Professional drop shadows
+- **Opacity** - Transparency control
+- **Image Filters** - Brightness, contrast, saturation, blur
+
+### 📦 Export for YouTube & Social Media
+| Format | Best For |
+|--------|----------|
+| **WebM** | YouTube videos, high-quality exports |
+| **GIF** | Social media, previews, memes |
+| **PNG Sequence** | Frame-by-frame editing |
+| **JSON** | Save/load projects |
+
+---
+
+![MR Studio Logo](./img/screenshots/mrstudio-logo.png)
+
+![Animation Interface](./images/screenshots/interface.png)
+
+![Image Tools](./images/screenshots/image-shape.png)
+
+![Drawing Tools Polyline](./images/screenshots/polyline.png)
+
+![Shape Library](./images/screenshots/shape-library.png)
+
+## 📸 See MR Studio in Action
+
+### Main Interface
+![Main Interface](./images/screenshots/interface.png)
+
+### Creating YouTube Video Intros
+![YouTube Intro Animation](./images/screenshots/image-shape.png)
+
+### Drawing Tools for Content Creators
+![Drawing Tools](./images/screenshots/polyline.png)
+
+### Keyframe Animation Timeline
+![Shape Library](./images/screenshots/shape-library.png)
+
+### Export for YouTube Videos
+![Advanced Features](./images/screenshots/features.png)
+
+---
+
+## 🚀 Quick Start for YouTubers
+
+### Installation (Takes 30 Seconds!)
+
+```bash
+# Clone the repository
+git clone https://github.com/MRaheem99/mr-studio.git
+
+# Navigate to folder
+cd mr-studio
+
+# Open index.html in your browser
+# That's it! No installation needed!
+---
+
 ## 📖 About
 
-MR Studio is a powerful free animation software, browser-based animation tool that combines vector drawing, keyframe animation, and professional export features. Create stunning animations, create cartoon animations, create animation videos for Youtube channel, draw freehand with multiple brush types, group objects, add keyframes with easing, and export to video or GIF - all without installing any software.
+MR Studio is a powerful free web-based javascript animation software, browser-based animation tool that combines vector drawing, keyframe animation, and professional export features. Create stunning animations, create cartoon animations, create animation videos for Youtube channel, draw freehand with multiple brush types, group objects, add keyframes with easing, and export to video or GIF - all without installing any software.
 
-Whether you're a professional animator, motion graphics designer, or hobbyist, MR Studio provides the tools you need to bring your ideas to life.
+Whether you're a professional animator, Youtuber, creating animation for Youtube channel, motion graphics designer, or hobbyist, MR Studio provides the tools you need to bring your ideas to life.
 
 ---
 
