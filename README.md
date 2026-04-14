@@ -24,7 +24,7 @@
 
 **MR Studio** is a **powerful animation software** built with **JavaScript** that runs entirely in your browser. It's a **lightweight**, **web-based 2D animation software** designed specifically for **YouTubers**, **animation channels**, and content creators who need to create stunning **YouTube videos** without expensive software.
 
-Whether you're creating explainer videos, animated intros, or full-length **YouTube videos**, MR Studio provides professional-grade tools in a lightweight package that runs on any device with a browser.
+Whether you are creating explainer videos, animated intros, or full-length **YouTube videos**, MR Studio provides professional-grade tools in a lightweight package that runs on any device with a browser.
 
 ### 🎯 Perfect for:
 - ✅ **YouTubers** creating animated content
@@ -120,7 +120,7 @@ cd mr-studio
 
 MR Studio is a powerful free web-based javascript animation software, browser-based animation tool that combines vector drawing, keyframe animation, and professional export features. Create stunning animations, create cartoon animations, create animation videos for Youtube channel, draw freehand with multiple brush types, group objects, add keyframes with easing, and export to video or GIF - all without installing any software.
 
-Whether you're a professional animator, Youtuber, creating animation for Youtube channel, motion graphics designer, or hobbyist, MR Studio provides the tools you need to bring your ideas to life.
+Whether you are a professional animator, Youtuber, creating animation for Youtube channel, motion graphics designer, or hobbyist, MR Studio provides the tools you need to bring your ideas to life.
 
 ---
 
