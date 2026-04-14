@@ -40,6 +40,10 @@ class ShapeManager {
             imgContrast: document.getElementById('imgContrastContainer'),
             imgSaturation: document.getElementById('imgSaturationContainer'),
             imgBlur: document.getElementById('imgBlurContainer'),
+            imgGrayscale: document.getElementById('imgGrayscaleContainer'),
+            imgSepia: document.getElementById('imgSepiaContainer'),
+            imgHue: document.getElementById('imgHueRotateContainer'),
+            imgInvert: document.getElementById('imgInvertContainer'),
             pivotX: document.getElementById('pivotXContainer'),
             pivotY: document.getElementById('pivotYContainer'),
             polygonSides: document.getElementById('polygonSidesContainer')
@@ -49,6 +53,8 @@ class ShapeManager {
         this.shadowColorInput = document.getElementById('shadowColor');
         this.textInput = document.getElementById('textInput');
         this.fontFamilySelect = document.getElementById('fontFamilySelect');
+        this.btnBringForward = document.getElementById('btnBringForward');
+        this.btnSendBackword = document.getElementById('btnSendBackword');
         this.btnBringFront = document.getElementById('btnBringFront');
         this.btnSendBack = document.getElementById('btnSendBack');
         this.btnCopy = document.getElementById('btnCopy');
@@ -68,53 +74,54 @@ class ShapeManager {
         this.initListeners();
     }
     initListeners() {
-        if(this.openBtn) this.openBtn.addEventListener('click', () => this.openModal());
-        if(this.closeBtn) this.closeBtn.addEventListener('click', () => this.closeModal());
-        if(this.modal) this.modal.addEventListener('click', (e) => {
-            if(e.target === this.modal) this.closeModal();
+        if (this.openBtn) this.openBtn.addEventListener('click', () => this.openModal());
+        if (this.closeBtn) this.closeBtn.addEventListener('click', () => this.closeModal());
+        if (this.modal) this.modal.addEventListener('click', (e) => {
+            if (e.target === this.modal) this.closeModal();
         });
-        if(this.objListOpenBtn) this.objListOpenBtn.addEventListener('click', () => this.openObjectsList());
-        if(this.objListCloseBtn) this.objListCloseBtn.addEventListener('click', () => this.closeObjectsList());
-        if(this.objListModal) this.objListModal.addEventListener('click', (e) => {
-            if(e.target === this.objListModal) this.closeObjectsList();
+        if (this.objListOpenBtn) this.objListOpenBtn.addEventListener('click', () => this.openObjectsList());
+        if (this.objListCloseBtn) this.objListCloseBtn.addEventListener('click', () => this.closeObjectsList());
+        if (this.objListModal) this.objListModal.addEventListener('click', (e) => {
+            if (e.target === this.objListModal) this.closeObjectsList();
         });
-        if(this.kfOpenBtn) this.kfOpenBtn.addEventListener('click', () => this.openKeyframes());
-        if(this.kfCloseBtn) this.kfCloseBtn.addEventListener('click', () => this.closeKeyframes());
-        if(this.kfModal) this.kfModal.addEventListener('click', (e) => {
-            if(e.target === this.kfModal) this.closeKeyframes();
+        if (this.kfOpenBtn) this.kfOpenBtn.addEventListener('click', () => this.openKeyframes());
+        if (this.kfCloseBtn) this.kfCloseBtn.addEventListener('click', () => this.closeKeyframes());
+        if (this.kfModal) this.kfModal.addEventListener('click', (e) => {
+            if (e.target === this.kfModal) this.closeKeyframes();
         });
-        if(this.addKfBtn) this.addKfBtn.addEventListener('click', () => this.addSequentialKeyframe());
-        if(this.fontFamilySelect) this.fontFamilySelect.addEventListener('change', (e) => this.updateProperty('fontFamily', e.target.value));
-        if(this.btnBringFront) this.btnBringFront.addEventListener('click', () => this.bringToFront());
-        if(this.btnSendBack) this.btnSendBack.addEventListener('click', () => this.sendToBack());
-        if(this.btnCopy) this.btnCopy.addEventListener('click', () => this.copyShape());
-        if(this.btnRemove) this.btnRemove.addEventListener('click', () => this.removeShape());
-        if(this.btnCloseShape) this.btnCloseShape.addEventListener('click', () => this.closeShape());
-        if(this.btnOpenShape) this.btnOpenShape.addEventListener('click', () => this.openShape());
+        if (this.addKfBtn) this.addKfBtn.addEventListener('click', () => this.addSequentialKeyframe());
+        if (this.btnBringForward) this.btnBringForward.addEventListener('click', () => this.bringForward());
+        if (this.btnSendBackword) this.btnSendBackword.addEventListener('click', () => this.sendBackward());
+        if (this.btnBringFront) this.btnBringFront.addEventListener('click', () => this.bringToFront());
+        if (this.btnSendBack) this.btnSendBack.addEventListener('click', () => this.sendToBack());
+        if (this.btnCopy) this.btnCopy.addEventListener('click', () => this.copyShape());
+        if (this.btnRemove) this.btnRemove.addEventListener('click', () => this.removeShape());
+        if (this.btnCloseShape) this.btnCloseShape.addEventListener('click', () => this.closeShape());
+        if (this.btnOpenShape) this.btnOpenShape.addEventListener('click', () => this.openShape());
         const btnFinishShape = document.getElementById('btnFinishShape');
-        if(btnFinishShape) {
+        if (btnFinishShape) {
             btnFinishShape.addEventListener('click', () => this.finishShape());
         }
         const btnReEditShape = document.getElementById('btnReEditShape');
-        if(btnReEditShape) {
+        if (btnReEditShape) {
             btnReEditShape.addEventListener('click', () => this.reEditShape());
         }
         const btnSmoothCorners = document.getElementById('btnSmoothCorners');
-        if(btnSmoothCorners) {
+        if (btnSmoothCorners) {
             btnSmoothCorners.addEventListener('click', () => {
                 this.smoothCorners(this.smoothnessValue || 0.3, false);
                 this.applySmoothPreview();
             });
         }
         const btnCancelSmooth = document.getElementById('btnCancelSmooth');
-        if(btnCancelSmooth) {
+        if (btnCancelSmooth) {
             btnCancelSmooth.addEventListener('click', () => {
                 this.cancelSmoothPreview();
             });
         }
-        if(this.btnUpdateText) {
+        if (this.btnUpdateText) {
             this.btnUpdateText.addEventListener('click', () => {
-                if(this.selectedShape && this.selectedShape.type === 'text') {
+                if (this.selectedShape && this.selectedShape.type === 'text') {
                     const oldText = this.selectedShape.text;
                     const newText = this.textInput.value;
                     this.undoManager.execute(
@@ -133,9 +140,9 @@ class ShapeManager {
         const shapeImageInput = document.getElementById('shapeImageInput');
         shapeImageBtn.addEventListener('click', () => shapeImageInput.click());
         shapeImageInput.addEventListener("change", (e) => {
-            if(!this.selectedShape) return;
+            if (!this.selectedShape) return;
             const file = e.target.files[0];
-            if(!file) return;
+            if (!file) return;
             const reader = new FileReader();
             reader.onload = (ev) => {
                 const img = new Image();
@@ -150,30 +157,30 @@ class ShapeManager {
             shapeImageInput.value = "";
         });
         const btnUpdateKeyframe = document.getElementById('btnUpdateKeyframe');
-        if(btnUpdateKeyframe) {
+        if (btnUpdateKeyframe) {
             btnUpdateKeyframe.addEventListener('click', () => {
                 this.saveCurrentKeyframe();
             });
         }
         const btnOpenEditModal = document.getElementById('btnOpenEditModal');
-        if(btnOpenEditModal) {
+        if (btnOpenEditModal) {
             btnOpenEditModal.addEventListener('click', () => {
                 this.openEditModal();
             });
         }
         const btnCancelEdit = document.getElementById('btnCancelEdit');
-        if(btnCancelEdit) {
+        if (btnCancelEdit) {
             btnCancelEdit.addEventListener('click', () => {
                 this.exitEditMode();
-                if(typeof interpolateAndDraw === 'function') {
+                if (typeof interpolateAndDraw === 'function') {
                     interpolateAndDraw();
                 }
             });
         }
         const btnResetPivot = document.getElementById('btnResetPivot');
-        if(btnResetPivot) {
+        if (btnResetPivot) {
             btnResetPivot.addEventListener('click', () => {
-                if(this.selectedShape) {
+                if (this.selectedShape) {
                     const oldState = {
                         pivotX: this.selectedShape.pivotX,
                         pivotY: this.selectedShape.pivotY
@@ -198,14 +205,39 @@ class ShapeManager {
                 }
             });
         }
+        const btnFlipH = document.getElementById('btnFlipH');
+        const btnFlipV = document.getElementById('btnFlipV');
+        if (btnFlipH) {
+            btnFlipH.addEventListener('click', () => this.flipHorizontal());
+        }
+        if (btnFlipV) {
+            btnFlipV.addEventListener('click', () => this.flipVertical());
+        }
+        const btnPrevFont = document.getElementById('btnPrevFont');
+        const btnNextFont = document.getElementById('btnNextFont');
+        if (btnPrevFont) {
+            btnPrevFont.addEventListener('click', () => this.prevFont());
+        }
+        if (btnNextFont) {
+            btnNextFont.addEventListener('click', () => this.nextFont());
+        }
+        const fontSelect = document.getElementById('fontFamilySelect');
+        if (fontSelect) {
+            fontSelect.addEventListener('change', (e) => {
+                if (this.selectedShape && this.selectedShape.type === 'text') {
+                    this.selectedShape.fontFamily = e.target.value;
+                    this.redraw();
+                }
+            });
+        }
     }
     _createPropertyUndo(prop, inputEl, getValue) {
-        if(!this.selectedShape || !this.undoManager) return;
+        if (!this.selectedShape || !this.undoManager) return;
         let oldValue = this.selectedShape[prop];
         const handler = (e) => {
-            if(!this.selectedShape || !this.undoManager) return;
+            if (!this.selectedShape || !this.undoManager) return;
             const newValue = getValue ? getValue(e) : e.target.value;
-            if(oldValue !== newValue) {
+            if (oldValue !== newValue) {
                 this.undoManager.execute(new PropertyCommand(
                     this.selectedShape, prop, oldValue, newValue, (val) => {
                         this.redraw();
@@ -217,17 +249,17 @@ class ShapeManager {
         inputEl.addEventListener('input', handler);
     }
     _setupPropertyListeners() {
-        if(!this.selectedShape) return;
-        if(this.colorInput) this._createPropertyUndo('color', this.colorInput);
-        if(this.borderColorInput) this._createPropertyUndo('borderColor', this.borderColorInput);
-        if(this.shadowColorInput) this._createPropertyUndo('shadowColor', this.shadowColorInput);
-        if(this.containers.pivotX) {
+        if (!this.selectedShape) return;
+        if (this.colorInput) this._createPropertyUndo('color', this.colorInput);
+        if (this.borderColorInput) this._createPropertyUndo('borderColor', this.borderColorInput);
+        if (this.shadowColorInput) this._createPropertyUndo('shadowColor', this.shadowColorInput);
+        if (this.containers.pivotX) {
             const input = this.containers.pivotX.querySelector('input');
-            if(input) this._createPropertyUndo('pivotX', input, (e) => parseFloat(e.target.value));
+            if (input) this._createPropertyUndo('pivotX', input, (e) => parseFloat(e.target.value));
         }
-        if(this.containers.pivotY) {
+        if (this.containers.pivotY) {
             const input = this.containers.pivotY.querySelector('input');
-            if(input) this._createPropertyUndo('pivotY', input, (e) => parseFloat(e.target.value));
+            if (input) this._createPropertyUndo('pivotY', input, (e) => parseFloat(e.target.value));
         }
         const currentDeg = this.selectedShape.rotation * 180 / Math.PI;
         const rotationSlider = createRNSlider({
@@ -240,7 +272,7 @@ class ShapeManager {
             width: 280,
             height: 50,
             onChange: (degValue) => {
-                if(this.undoManager && !this.undoManager.isBatching) {
+                if (this.undoManager && !this.undoManager.isBatching) {
                     const oldRad = this.selectedShape.rotation;
                     const newRad = degValue * Math.PI / 180;
                     this.undoManager.execute(new PropertyCommand(
@@ -254,28 +286,28 @@ class ShapeManager {
     }
     setSelectedShape(shape) {
         this.selectedShape = shape;
-        if(this.selectedShape) {
+        if (this.selectedShape) {
             this.syncUI();
             this._setupPropertyUndoListeners();
-            if(this.openBtn) this.openBtn.style.display = 'inline-flex';
-            if(this.kfOpenBtn) this.kfOpenBtn.style.display = 'inline-flex';
-            if(this.selectedShape.keyframes.length) this.buildTrack(shape);
+            if (this.openBtn) this.openBtn.style.display = 'inline-flex';
+            if (this.kfOpenBtn) this.kfOpenBtn.style.display = 'inline-flex';
+            if (this.selectedShape.keyframes.length) this.buildTrack(shape);
         } else {
-            if(this.openBtn) this.openBtn.style.display = 'none';
-            if(this.kfOpenBtn) this.kfOpenBtn.style.display = 'none';
+            if (this.openBtn) this.openBtn.style.display = 'none';
+            if (this.kfOpenBtn) this.kfOpenBtn.style.display = 'none';
             this.closeKeyframes();
         }
         this.renderObjectsList();
     }
     _setupPropertyUndoListeners() {
-        if(!this.selectedShape || !this.undoManager) return;
-        if(this.undoListenersAttached) return;
+        if (!this.selectedShape || !this.undoManager) return;
+        if (this.undoListenersAttached) return;
         this.undoListenersAttached = true;
-        if(this.colorInput) {
+        if (this.colorInput) {
             let oldValue = this.selectedShape.color;
             this.colorInput.addEventListener('change', (e) => {
                 const newValue = e.target.value;
-                if(oldValue !== newValue && !this.undoManager.isBatching) {
+                if (oldValue !== newValue && !this.undoManager.isBatching) {
                     this.undoManager.execute(new PropertyCommand(
                         this.selectedShape, 'color', oldValue, newValue, this.redraw
                     ));
@@ -283,11 +315,11 @@ class ShapeManager {
                 }
             });
         }
-        if(this.borderColorInput) {
+        if (this.borderColorInput) {
             let oldValue = this.selectedShape.borderColor;
             this.borderColorInput.addEventListener('change', (e) => {
                 const newValue = e.target.value;
-                if(oldValue !== newValue && !this.undoManager.isBatching) {
+                if (oldValue !== newValue && !this.undoManager.isBatching) {
                     this.undoManager.execute(new PropertyCommand(
                         this.selectedShape, 'borderColor', oldValue, newValue, this.redraw
                     ));
@@ -295,11 +327,11 @@ class ShapeManager {
                 }
             });
         }
-        if(this.shadowColorInput) {
+        if (this.shadowColorInput) {
             let oldValue = this.selectedShape.shadowColor;
             this.shadowColorInput.addEventListener('change', (e) => {
                 const newValue = e.target.value;
-                if(oldValue !== newValue && !this.undoManager.isBatching) {
+                if (oldValue !== newValue && !this.undoManager.isBatching) {
                     this.undoManager.execute(new PropertyCommand(
                         this.selectedShape, 'shadowColor', oldValue, newValue, this.redraw
                     ));
@@ -307,13 +339,13 @@ class ShapeManager {
                 }
             });
         }
-        if(this.containers.pivotX) {
+        if (this.containers.pivotX) {
             const input = this.containers.pivotX.querySelector('input');
-            if(input) {
+            if (input) {
                 let oldValue = this.selectedShape.pivotX;
                 input.addEventListener('change', (e) => {
                     const newValue = parseFloat(e.target.value);
-                    if(oldValue !== newValue && !this.undoManager.isBatching) {
+                    if (oldValue !== newValue && !this.undoManager.isBatching) {
                         this.undoManager.execute(new PropertyCommand(
                             this.selectedShape, 'pivotX', oldValue, newValue, this.redraw
                         ));
@@ -322,13 +354,13 @@ class ShapeManager {
                 });
             }
         }
-        if(this.containers.pivotY) {
+        if (this.containers.pivotY) {
             const input = this.containers.pivotY.querySelector('input');
-            if(input) {
+            if (input) {
                 let oldValue = this.selectedShape.pivotY;
                 input.addEventListener('change', (e) => {
                     const newValue = parseFloat(e.target.value);
-                    if(oldValue !== newValue && !this.undoManager.isBatching) {
+                    if (oldValue !== newValue && !this.undoManager.isBatching) {
                         this.undoManager.execute(new PropertyCommand(
                             this.selectedShape, 'pivotY', oldValue, newValue, this.redraw
                         ));
@@ -340,46 +372,62 @@ class ShapeManager {
     }
     addSequentialKeyframe() {
         if (!this.selectedShape || !this.undoManager) return;
-        
         const settings = this.getSettings();
         const step = settings ? parseFloat(settings.keyframeStep) || 1.0 : 1.0;
-        
-        let newTime = this.selectedShape.keyframes.length === 0 ? 0 : 
+        let newTime = this.selectedShape.keyframes.length === 0 ? 0 :
             parseFloat((this.selectedShape.keyframes[this.selectedShape.keyframes.length - 1].time + step).toFixed(2));
-        
-        // For groups, capture transform state
+        if (newTime >= window.animationState.duration - 1) {
+            const newDuration = newTime + 60;
+            window.animationState.duration = newDuration;
+            updateTimelineSize();
+            drawTimelineRuler();
+            updateTimelineUI();
+            if (loopEnabled) {
+                loopEndTime = newDuration;
+            }
+            showToast(`Timeline extended to ${newDuration.toFixed(0)} seconds`, 'I');
+        }
         const state = this.captureState();
         const kfData = { time: newTime, state };
-        
         this.undoManager.execute(new KeyframeCommand(
-            this.selectedShape, 'add', -1, kfData, 
-            () => { 
-                this.renderKeyframeList(); 
+            this.selectedShape,
+            'add', -1,
+            kfData,
+            () => {
+                this.renderKeyframeList();
                 this.redraw();
-                // Rebuild track for this shape
                 this.buildTrack(this.selectedShape);
+                this.recalculateGlobalDuration();
+                if (typeof updateTimelineSize === 'function') updateTimelineSize();
+                if (typeof drawTimelineRuler === 'function') drawTimelineRuler();
+                if (typeof rebuildTracks === 'function') rebuildTracks();
+                if (typeof updateTimelineUI === 'function') updateTimelineUI();
             },
-            () => this.recalculateGlobalDuration(),
-            rebuildTracks(),
-            drawTimelineRuler()
+            () => {
+                this.recalculateGlobalDuration();
+                if (typeof updateTimelineSize === 'function') updateTimelineSize();
+                if (typeof drawTimelineRuler === 'function') drawTimelineRuler();
+                if (typeof rebuildTracks === 'function') rebuildTracks();
+            }
         ));
     }
     recalculateGlobalDuration() {
         let maxTime = 0;
         this.shapes.forEach(shape => {
             shape.keyframes.forEach(kf => {
-                if(kf.time > maxTime) {
+                if (kf.time > maxTime) {
                     maxTime = kf.time;
                 }
             });
         });
         window.animationState.duration = maxTime + (1 / window.animationState.fps);
-        if(this.updateDuration) this.updateDuration(window.animationState.duration);
+        if (this.updateDuration) this.updateDuration(window.animationState.duration);
         this.shapes.forEach(shape => this.buildTrack(shape));
         updateTimelineSize();
+        updateTimelineUI();
     }
     captureState() {
-        if(!this.selectedShape) return null;
+        if (!this.selectedShape) return null;
         const shape = this.selectedShape;
         if (shape.type === 'group') {
             return {
@@ -403,7 +451,6 @@ class ShapeManager {
                 shadowOpacity: shape.shadowOpacity
             };
         }
-    
         const pivotLocalX = this.selectedShape.pivotX * this.selectedShape.scaleX;
         const pivotLocalY = this.selectedShape.pivotY * this.selectedShape.scaleY;
         const cos = Math.cos(this.selectedShape.rotation);
@@ -454,7 +501,7 @@ class ShapeManager {
         }));
     }
     applyState(shape, state) {
-        if(!shape || !state) return;
+        if (!shape || !state) return;
         if (shape.type === 'group') {
             if (state.x !== undefined) shape.x = state.x;
             if (state.y !== undefined) shape.y = state.y;
@@ -476,7 +523,7 @@ class ShapeManager {
             if (state.shadowOpacity !== undefined) shape.shadowOpacity = state.shadowOpacity;
             return;
         }
-        if(state.pivotWorldX !== undefined && state.pivotWorldY !== undefined) {
+        if (state.pivotWorldX !== undefined && state.pivotWorldY !== undefined) {
             const pivotLocalX = state.pivotX * state.scaleX;
             const pivotLocalY = state.pivotY * state.scaleY;
             const cos = Math.cos(state.rotation);
@@ -486,20 +533,20 @@ class ShapeManager {
             state.x = state.pivotWorldX + offsetX;
             state.y = state.pivotWorldY + offsetY;
         }
-        if(state.fillImage) {
+        if (state.fillImage) {
             const img = new Image();
             img.src = state.fillImage;
             shape.fillImageObj = img;
         }
         Object.assign(shape, state);
-        if(state.points) {
+        if (state.points) {
             shape.points = state.points.map(p => ({
                 ...p
             }));
         }
     }
     deleteKeyframe(index) {
-        if(!this.selectedShape || !this.undoManager) return;
+        if (!this.selectedShape || !this.undoManager) return;
         const kfData = this.selectedShape.keyframes[index];
         this.undoManager.execute(new KeyframeCommand(
             this.selectedShape, 'delete', index, kfData,
@@ -511,7 +558,7 @@ class ShapeManager {
         ));
     }
     goToKeyframe(time) {
-        if(window.seekAnimation) window.seekAnimation(time);
+        if (window.seekAnimation) window.seekAnimation(time);
         this.redraw();
     }
     openObjectsList() {
@@ -522,9 +569,9 @@ class ShapeManager {
         this.objListModal.classList.remove('open');
     }
     renderObjectsList() {
-        if(!this.objListContainer) return;
+        if (!this.objListContainer) return;
         this.objListContainer.innerHTML = '';
-        if(this.shapes.length === 0) {
+        if (this.shapes.length === 0) {
             this.objListContainer.innerHTML = '<div style="padding:10px; color:#666; text-align:center;">No objects.</div>';
             return;
         }
@@ -559,7 +606,7 @@ class ShapeManager {
         });
     }
     openKeyframes() {
-        if(!this.selectedShape) return;
+        if (!this.selectedShape) return;
         this.renderKeyframeList();
         openPopup(this.kfModal);
     }
@@ -569,18 +616,18 @@ class ShapeManager {
     }
     exitEditMode() {
         const editBar = document.getElementById('kfEditBar');
-        if(editBar) editBar.style.display = 'none';
+        if (editBar) editBar.style.display = 'none';
         const updateBtn = document.getElementById('btnUpdateKeyframe');
-        if(updateBtn) updateBtn.style.display = 'none';
+        if (updateBtn) updateBtn.style.display = 'none';
         this.editingKeyframeIndex = -1;
         this.editingKeyframeTime = 0;
         this.isEditingKeyframe = false;
     }
     renderKeyframeList() {
-        if(!this.kfListContainer || !this.selectedShape) return;
+        if (!this.kfListContainer || !this.selectedShape) return;
         this.kfListContainer.innerHTML = '';
         this.exitEditMode();
-        if(this.selectedShape.keyframes.length === 0) {
+        if (this.selectedShape.keyframes.length === 0) {
             this.kfListContainer.innerHTML = '<div style="padding:10px; color:#666; text-align:center;">No keyframes.</div>';
             return;
         }
@@ -648,26 +695,26 @@ class ShapeManager {
         });
     }
     enterEditMode(index) {
-        if(!this.selectedShape || index < 0 || index >= this.selectedShape.keyframes.length) return;
+        if (!this.selectedShape || index < 0 || index >= this.selectedShape.keyframes.length) return;
         this.editingKeyframeIndex = index;
         this.editingKeyframeTime = this.selectedShape.keyframes[index].time;
         this.isEditingKeyframe = true;
         const editBar = document.getElementById('kfEditBar');
         const timeLabel = document.getElementById('kfEditTime');
-        if(editBar && timeLabel) {
+        if (editBar && timeLabel) {
             timeLabel.textContent = this.editingKeyframeTime.toFixed(2) + 's';
             editBar.style.display = 'block';
         }
         const updateBtn = document.getElementById('btnUpdateKeyframe');
-        if(updateBtn) {
+        if (updateBtn) {
             updateBtn.style.display = 'inline-flex';
             updateBtn.title = `Update Keyframe at ${this.editingKeyframeTime.toFixed(2)}s`;
         }
-        if(window.seekAnimation) {
+        if (window.seekAnimation) {
             window.seekAnimation(this.editingKeyframeTime);
         }
         let kfState = this.selectedShape.keyframes[index].state;
-        if(kfState.pivotWorldX === undefined) {
+        if (kfState.pivotWorldX === undefined) {
             const pivotLocalX = kfState.pivotX * kfState.scaleX;
             const pivotLocalY = kfState.pivotY * kfState.scaleY;
             const cos = Math.cos(kfState.rotation);
@@ -679,11 +726,11 @@ class ShapeManager {
         this.redraw();
     }
     openEditModal() {
-        if(this.editingKeyframeIndex === -1 || !this.selectedShape) return;
+        if (this.editingKeyframeIndex === -1 || !this.selectedShape) return;
         this.openModal();
     }
     saveCurrentKeyframe() {
-        if(!this.isEditingKeyframe || this.editingKeyframeIndex === -1 || !this.selectedShape) {
+        if (!this.isEditingKeyframe || this.editingKeyframeIndex === -1 || !this.selectedShape) {
             showToast("No keyframe selected for editing.", 'E');
             return;
         }
@@ -715,8 +762,8 @@ class ShapeManager {
         this.redraw();
     }
     closeModal() {
-        if(this.editingKeyframeIndex !== -1) {
-            if(confirm("Save changes to this keyframe?")) {
+        if (this.editingKeyframeIndex !== -1) {
+            if (confirm("Save changes to this keyframe?")) {
                 this.saveCurrentKeyframe();
             }
             this.exitEditMode();
@@ -725,13 +772,13 @@ class ShapeManager {
     }
     clearContainers() {
         Object.values(this.containers).forEach(el => {
-            if(el) {
+            if (el) {
                 el.innerHTML = '';
                 el.style.display = 'none';
             }
         });
-        if(this.textInput) this.textInput.parentElement.parentElement.style.display = 'none';
-        if(this.btnUpdateText) this.btnUpdateText.style.display = 'none';
+        if (this.textInput) this.textInput.parentElement.parentElement.style.display = 'none';
+        if (this.btnUpdateText) this.btnUpdateText.style.display = 'none';
     }
     showSection(sectionName) {
         const map = {
@@ -739,17 +786,17 @@ class ShapeManager {
             'border': ['borderWidth', 'borderColor', 'borderOffset', 'borderBlur'],
             'shadow': ['shadowColor', 'shadowBlur', 'shadowOffsetX', 'shadowOffsetY', 'shadowOpacity'],
             'text': ['fontSize'],
-            'image': ['imgBrightness', 'imgContrast', 'imgSaturation', 'imgBlur'],
+            'image': ['imgBrightness', 'imgContrast', 'imgSaturation', 'imgBlur', 'imgGrayscale', 'imgSepia', 'imgHue', 'imgInvert'],
             'pivot': ['pivotX', 'pivotY']
         };
-        if(map[sectionName]) map[sectionName].forEach(id => {
-            if(this.containers[id]) this.containers[id].style.display = 'block';
+        if (map[sectionName]) map[sectionName].forEach(id => {
+            if (this.containers[id]) this.containers[id].style.display = 'block';
         });
     }
     initSliders() {
-        if(!this.selectedShape) return;
+        if (!this.selectedShape) return;
         const createSlider = (idKey, label, val, min, max, step, prop) => {
-            if(!this.containers[idKey]) return;
+            if (!this.containers[idKey]) return;
             const wrapper = createRNSlider({
                 label,
                 value: val !== undefined ? val : ((min + max) / 2),
@@ -764,7 +811,7 @@ class ShapeManager {
             this.containers[idKey].appendChild(wrapper);
         };
         const createSliderWithUndo = (idKey, label, val, min, max, step, prop) => {
-            if(!this.containers[idKey]) return;
+            if (!this.containers[idKey]) return;
             let startValue = val;
             const wrapper = createRNSlider({
                 label,
@@ -776,15 +823,15 @@ class ShapeManager {
                 width: 280,
                 height: 50,
                 onChange: (v) => {
-                    if(this.selectedShape && this.selectedShape.type === "group") {
-                        if(prop === 'opacity') this.selectedShape.setOpacity(v);
-                        else if(prop === 'borderWidth') this.selectedShape.setBorderWidth(v);
-                        else if(prop === 'borderOffset') this.selectedShape.setBorderOffset(v);
-                        else if(prop === 'borderBlur') this.selectedShape.setBorderBlur(v);
-                        else if(prop === 'shadowBlur') this.selectedShape.setShadowBlur(v);
-                        else if(prop === 'shadowOffsetX') this.selectedShape.setShadowOffsetX(v);
-                        else if(prop === 'shadowOffsetY') this.selectedShape.setShadowOffsetY(v);
-                        else if(prop === 'shadowOpacity') this.selectedShape.setShadowOpacity(v);
+                    if (this.selectedShape && this.selectedShape.type === "group") {
+                        if (prop === 'opacity') this.selectedShape.setOpacity(v);
+                        else if (prop === 'borderWidth') this.selectedShape.setBorderWidth(v);
+                        else if (prop === 'borderOffset') this.selectedShape.setBorderOffset(v);
+                        else if (prop === 'borderBlur') this.selectedShape.setBorderBlur(v);
+                        else if (prop === 'shadowBlur') this.selectedShape.setShadowBlur(v);
+                        else if (prop === 'shadowOffsetX') this.selectedShape.setShadowOffsetX(v);
+                        else if (prop === 'shadowOffsetY') this.selectedShape.setShadowOffsetY(v);
+                        else if (prop === 'shadowOpacity') this.selectedShape.setShadowOpacity(v);
                         else this.selectedShape[prop] = v;
                     } else {
                         this.selectedShape[prop] = v;
@@ -797,7 +844,7 @@ class ShapeManager {
             });
             wrapper.addEventListener('mouseup', () => {
                 const endValue = this.selectedShape[prop];
-                if(startValue !== endValue && this.undoManager) {
+                if (startValue !== endValue && this.undoManager) {
                     this.undoManager.execute(
                         new PropertyCommand(
                             this.selectedShape,
@@ -822,7 +869,7 @@ class ShapeManager {
             width: 280,
             height: 50,
             onChange: (degValue) => {
-                if(this.undoManager && !this.undoManager.isBatching) {
+                if (this.undoManager && !this.undoManager.isBatching) {
                     const oldRad = this.selectedShape.rotation;
                     const newRad = degValue * Math.PI / 180;
                     this.undoManager.execute(new PropertyCommand(
@@ -846,22 +893,30 @@ class ShapeManager {
         createSliderWithUndo('shadowOffsetX', 'Shadow X', this.selectedShape.shadowOffsetX, -100, 100, 1, 'shadowOffsetX');
         createSliderWithUndo('shadowOffsetY', 'Shadow Y', this.selectedShape.shadowOffsetY, -100, 100, 1, 'shadowOffsetY');
         createSliderWithUndo('shadowOpacity', 'Shadow Opacity', this.selectedShape.shadowOpacity, 0, 1, 0.01, 'shadowOpacity');
-        createSliderWithUndo('fontSize', 'Font Size', this.selectedShape.fontSize, 10, 200, 1, 'fontSize');
-        createSliderWithUndo('imgBrightness', 'Brightness', this.selectedShape.filterBrightness, 0, 200, 1, 'filterBrightness');
-        createSliderWithUndo('imgContrast', 'Contrast', this.selectedShape.filterContrast, 0, 200, 1, 'filterContrast');
-        createSliderWithUndo('imgSaturation', 'Saturation', this.selectedShape.filterSaturation, 0, 200, 1, 'filterSaturation');
-        createSliderWithUndo('imgBlur', 'Image Blur', this.selectedShape.filterBlur, 0, 20, 1, 'filterBlur');
         createSliderWithUndo('pivotX', 'Pivot X (Local)', this.selectedShape.pivotX, -200, 200, 1, 'pivotX');
         createSliderWithUndo('pivotY', 'Pivot Y (Local)', this.selectedShape.pivotY, -200, 200, 1, 'pivotY');
         createSliderWithUndo('polygonSides', 'Sides', this.selectedShape.sides, 3, 12, 1, 'sides');
+        if (this.selectedShape.type === 'image') {
+            createSliderWithUndo('imgBrightness', 'Brightness', this.selectedShape.filterBrightness, 0, 200, 1, 'filterBrightness');
+            createSliderWithUndo('imgContrast', 'Contrast', this.selectedShape.filterContrast, 0, 200, 1, 'filterContrast');
+            createSliderWithUndo('imgSaturation', 'Saturation', this.selectedShape.filterSaturation, 0, 200, 1, 'filterSaturation');
+            createSliderWithUndo('imgBlur', 'Blur', this.selectedShape.filterBlur, 0, 20, 1, 'filterBlur');
+            createSliderWithUndo('imgGrayscale', 'Grayscale', this.selectedShape.filterGrayscale, 0, 100, 1, 'filterGrayscale');
+            createSliderWithUndo('imgSepia', 'Sepia', this.selectedShape.filterSepia, 0, 100, 1, 'filterSepia');
+            createSliderWithUndo('imgHue', 'Hue Rotate', this.selectedShape.filterHueRotate, 0, 360, 1, 'filterHueRotate');
+            createSliderWithUndo('imgInvert', 'Invert', this.selectedShape.filterInvert, 0, 100, 1, 'filterInvert');
+        }
+        if (this.selectedShape.type === 'text') {
+            createSliderWithUndo('fontSize', 'Font Size', this.selectedShape.fontSize, 10, 200, 1, 'fontSize');
+        }
     }
     closeShape() {
-        if(!this.selectedShape ||
+        if (!this.selectedShape ||
             (this.selectedShape.type !== "polyline" && this.selectedShape.type !== "path")) {
             showToast("Select a polyline or path", 'E');
             return;
         }
-        if(this.selectedShape.points.length < 3) {
+        if (this.selectedShape.points.length < 3) {
             showToast("Need at least 3 points to close shape", 'E');
             return;
         }
@@ -871,16 +926,16 @@ class ShapeManager {
             Math.abs(first.x - last.x) < 0.1 &&
             Math.abs(first.y - last.y) < 0.1
         );
-        if(isAlreadyClosed) {
+        if (isAlreadyClosed) {
             showToast("Shape is already closed", 'I');
             return;
         }
-        if(this.selectedShape.type === "polyline") {
+        if (this.selectedShape.type === "polyline") {
             const firstPointCopy = {
                 x: first.x,
                 y: first.y
             };
-            if(this.undoManager) {
+            if (this.undoManager) {
                 const oldPoints = JSON.parse(JSON.stringify(this.selectedShape.points));
                 this.undoManager.execute({
                     execute: () => {
@@ -897,7 +952,7 @@ class ShapeManager {
                 this.redraw();
             }
             showToast("Polyline closed!", 'S');
-        } else if(this.selectedShape.type === "path") {
+        } else if (this.selectedShape.type === "path") {
             const firstPointCopy = {
                 x: first.x,
                 y: first.y,
@@ -909,7 +964,7 @@ class ShapeManager {
                 },
                 curve: first.curve
             };
-            if(this.undoManager) {
+            if (this.undoManager) {
                 const oldPoints = JSON.parse(JSON.stringify(this.selectedShape.points));
                 this.undoManager.execute({
                     execute: () => {
@@ -930,16 +985,16 @@ class ShapeManager {
         this.syncUI();
     }
     openShape() {
-        if(!this.selectedShape ||
+        if (!this.selectedShape ||
             (this.selectedShape.type !== "polyline" && this.selectedShape.type !== "path")) {
             return;
         }
-        if(this.selectedShape.points.length > 1) {
+        if (this.selectedShape.points.length > 1) {
             const first = this.selectedShape.points[0];
             const last = this.selectedShape.points[this.selectedShape.points.length - 1];
-            if(Math.abs(first.x - last.x) < 0.1 && Math.abs(first.y - last.y) < 0.1) {
+            if (Math.abs(first.x - last.x) < 0.1 && Math.abs(first.y - last.y) < 0.1) {
                 this.selectedShape.points.pop();
-                if(this.undoManager) {
+                if (this.undoManager) {
                     this.undoManager.execute({
                         execute: () => {
                             this.redraw();
@@ -958,22 +1013,22 @@ class ShapeManager {
         this.syncUI();
     }
     syncUI() {
-        if(!this.selectedShape || !this.modal) return;
+        if (!this.selectedShape || !this.modal) return;
         this.clearContainers();
         let title = "Edit ";
-        if(this.selectedShape.type === "group") {
+        if (this.selectedShape.type === "group") {
             title = `Group: ${this.selectedShape.name}`;
             this.popupTitle.textContent = title;
             const groupInfo = document.getElementById('groupInfo');
             const groupChildCount = document.getElementById('groupChildCount');
-            if(groupInfo && groupChildCount) {
+            if (groupInfo && groupChildCount) {
                 groupInfo.style.display = 'block';
                 groupChildCount.innerHTML = `<i class="fa-solid fa-cubes"></i> Contains ${this.selectedShape.children.length} objects<br>
                                             <small style="color:#888;">Properties affect all children</small>`;
                 const btnUngroupModal = document.getElementById('btnUngroupFromModal');
-                if(btnUngroupModal) {
+                if (btnUngroupModal) {
                     btnUngroupModal.onclick = () => {
-                        if(window.ungroupSelected) window.ungroupSelected();
+                        if (window.ungroupSelected) window.ungroupSelected();
                         this.closeModal();
                     };
                 }
@@ -985,73 +1040,103 @@ class ShapeManager {
             return;
         } else {
             const groupInfo = document.getElementById('groupInfo');
-            if(groupInfo) groupInfo.style.display = 'none';
+            if (groupInfo) groupInfo.style.display = 'none';
         }
-        if(this.selectedShape.type === 'text') title += "Text";
-        else if(this.selectedShape.type === 'image') title += "Image";
-        else if(this.selectedShape.type === 'path') title += "Path";
-        else if(this.selectedShape.type === 'polyline') title += "Polyline";
+        if (this.selectedShape.type === 'text') title += "Text";
+        else if (this.selectedShape.type === 'image') title += "Image";
+        else if (this.selectedShape.type === 'path') title += "Path";
+        else if (this.selectedShape.type === 'polyline') title += "Polyline";
         else title += "Shape";
         this.popupTitle.textContent = title;
-        if(this.colorInput) {
+        if (this.colorInput) {
             this.colorInput.value = this.selectedShape.color || '#00d4ff';
             this.colorInput.parentElement.parentElement.style.display =
                 (this.selectedShape.type === 'image') ? 'none' : 'flex';
         }
-        if(this.borderColorInput) {
+        if (this.borderColorInput) {
             this.borderColorInput.value = this.selectedShape.borderColor || '#ffffff';
         }
-        if(this.shadowColorInput) {
+        if (this.shadowColorInput) {
             this.shadowColorInput.value = this.selectedShape.shadowColor || '#000000';
         }
-        if(this.selectedShape.type === 'text') {
-            if(this.textInput) {
+        if (this.selectedShape.type === 'text') {
+            if (this.textInput) {
                 this.textInput.value = this.selectedShape.text;
                 this.textInput.parentElement.parentElement.style.display = 'block';
             }
-            if(this.btnUpdateText) this.btnUpdateText.style.display = 'flex';
+            if (this.btnUpdateText) this.btnUpdateText.style.display = 'flex';
+            const fontSelect = document.getElementById('fontFamilySelect');
+            if (fontSelect && this.selectedShape.fontFamily) {
+                fontSelect.value = this.selectedShape.fontFamily;
+            }
             this.showSection('text');
         }
-        if(this.selectedShape.type === "polygon") {
+        if (this.selectedShape.type === "polygon") {
             this.containers.polygonSides.style.display = "block";
         }
         this.showSection('common');
-        if(this.selectedShape.type !== 'line') {
+        if (this.selectedShape.type !== 'line') {
             this.showSection('border');
             this.showSection('shadow');
         } else {
             this.showSection('shadow');
         }
-        if(this.selectedShape.type === 'image') {
+        if (this.selectedShape.type === 'image') {
             document.getElementById('imageInputGroup').style.display = "block";
             this.showSection('image');
+            this.updateImagePreview(this.selectedShape);
+            const btnReplaceImage = document.getElementById('btnReplaceImage');
+            if (btnReplaceImage) {
+                const newBtnReplace = btnReplaceImage.cloneNode(true);
+                btnReplaceImage.parentNode.replaceChild(newBtnReplace, btnReplaceImage);
+                newBtnReplace.onclick = () => {
+                    this.replaceImage(this.selectedShape);
+                };
+            }
+            const btnRemoveImage = document.getElementById('btnRemoveImage');
+            if (btnRemoveImage) {
+                const newBtnRemove = btnRemoveImage.cloneNode(true);
+                btnRemoveImage.parentNode.replaceChild(newBtnRemove, btnRemoveImage);
+                newBtnRemove.onclick = () => {
+                    this.removeImage(this.selectedShape);
+                };
+            }
         } else {
             document.getElementById('imageInputGroup').style.display = "none";
+        }
+        if (this.selectedShape.type === 'drawing') {
+            this.showSection('common');
+            this.showSection('border');
+            this.showSection('shadow');
+            this.initSliders();
+            const bgImageGroup = document.getElementById('bgImageGroup');
+            if (bgImageGroup) bgImageGroup.style.display = 'block';
+            return;
         }
         const polylineOptionsGroup = document.getElementById('polylineOptionsGroup');
         const smoothCornersGroup = document.getElementById('smoothCornersGroup');
         const finishHint = document.getElementById('finishHint');
-        if(polylineOptionsGroup && smoothCornersGroup) {
-            if((this.selectedShape.type === "polyline" || this.selectedShape.type === "path") &&
+        if (polylineOptionsGroup && smoothCornersGroup) {
+            if ((this.selectedShape.type === "polyline" || this.selectedShape.type === "path") &&
                 this.selectedShape.points && this.selectedShape.points.length >= 2) {
                 polylineOptionsGroup.style.display = 'block';
                 const btnFinishShape = document.getElementById('btnFinishShape');
                 const btnReEditShape = document.getElementById('btnReEditShape');
-                if(btnFinishShape && btnReEditShape) {
-                    if(this.selectedShape.finished) {
+                if (btnFinishShape && btnReEditShape) {
+                    if (this.selectedShape.finished) {
                         btnFinishShape.style.display = 'none';
                         btnReEditShape.style.display = 'flex';
-                        if(finishHint) {
+                        if (finishHint) {
                             finishHint.style.display = 'block';
                             finishHint.innerHTML = '<i class="fa-solid fa-info-circle"></i> Shape is finished — double-click to re-edit points';
                         }
                     } else {
                         btnFinishShape.style.display = 'flex';
                         btnReEditShape.style.display = 'none';
-                        if(finishHint) finishHint.style.display = 'none';
+                        if (finishHint) finishHint.style.display = 'none';
                     }
                 }
-                if(!this.selectedShape.finished && this.selectedShape.points.length >= 3) {
+                if (!this.selectedShape.finished && this.selectedShape.points.length >= 3) {
                     smoothCornersGroup.style.display = 'block';
                     this.initSmoothnessSlider();
                 } else {
@@ -1059,7 +1144,7 @@ class ShapeManager {
                 }
                 const btnCloseShape = document.getElementById('btnCloseShape');
                 const btnOpenShape = document.getElementById('btnOpenShape');
-                if(btnCloseShape && btnOpenShape) {
+                if (btnCloseShape && btnOpenShape) {
                     btnCloseShape.style.display = 'flex';
                     const pts = this.selectedShape.points;
                     const isClosed = (pts.length > 2 &&
@@ -1074,8 +1159,8 @@ class ShapeManager {
             }
         }
         const fillColorInfo = document.getElementById('fillColorInfo');
-        if(fillColorInfo) {
-            if((this.selectedShape.type === "polyline" || this.selectedShape.type === "path") &&
+        if (fillColorInfo) {
+            if ((this.selectedShape.type === "polyline" || this.selectedShape.type === "path") &&
                 this.selectedShape.points && this.selectedShape.points.length > 2) {
                 const first = this.selectedShape.points[0];
                 const last = this.selectedShape.points[this.selectedShape.points.length - 1];
@@ -1088,16 +1173,16 @@ class ShapeManager {
                 fillColorInfo.style.display = 'none';
             }
         }
-        if(this.btnFinishShape) {
-            if((this.selectedShape.type === "polyline" || this.selectedShape.type === "path") &&
+        if (this.btnFinishShape) {
+            if ((this.selectedShape.type === "polyline" || this.selectedShape.type === "path") &&
                 !this.selectedShape.finished) {
                 this.btnFinishShape.style.display = 'flex';
             } else {
                 this.btnFinishShape.style.display = 'none';
             }
         }
-        if(this.smoothCornersGroup && this.smoothnessSliderContainer) {
-            if((this.selectedShape.type === "polyline" || this.selectedShape.type === "path") &&
+        if (this.smoothCornersGroup && this.smoothnessSliderContainer) {
+            if ((this.selectedShape.type === "polyline" || this.selectedShape.type === "path") &&
                 !this.selectedShape.finished &&
                 this.selectedShape.points && this.selectedShape.points.length >= 3) {
                 this.smoothCornersGroup.style.display = 'block';
@@ -1110,15 +1195,15 @@ class ShapeManager {
         this.initSliders();
     }
     openModal() {
-        if(!this.selectedShape) return;
+        if (!this.selectedShape) return;
         this.syncUI();
         openPopup(this.modal);
     }
     updateProperty(prop, value) {
-        if(!this.selectedShape) return;
-        if(prop === 'rotationDeg') {
+        if (!this.selectedShape) return;
+        if (prop === 'rotationDeg') {
             const newRotation = value * Math.PI / 180;
-            if(this.selectedShape.pivotX !== 0 || this.selectedShape.pivotY !== 0) {
+            if (this.selectedShape.pivotX !== 0 || this.selectedShape.pivotY !== 0) {
                 const pivotLocalX = this.selectedShape.pivotX * this.selectedShape.scaleX;
                 const pivotLocalY = this.selectedShape.pivotY * this.selectedShape.scaleY;
                 const oldCos = Math.cos(this.selectedShape.rotation);
@@ -1135,18 +1220,18 @@ class ShapeManager {
             } else {
                 this.selectedShape.rotation = newRotation;
             }
-            const sliderWrapper = this.containers['rotation']?.querySelector('.rn-slider-wrapper');
-        } else if(prop === 'pivotX' || prop === 'pivotY') {
+            const sliderWrapper = this.containers['rotation'] ?.querySelector('.rn-slider-wrapper');
+        } else if (prop === 'pivotX' || prop === 'pivotY') {
             this.selectedShape[prop] = value;
-        } else if(prop === 'skewX') {
+        } else if (prop === 'skewX') {
             this.selectedShape.skewX = value * Math.PI / 180;
-        } else if(prop === 'skewY') {
+        } else if (prop === 'skewY') {
             this.selectedShape.skewY = value * Math.PI / 180;
-        } else if(prop === 'bgOffsetX') {
+        } else if (prop === 'bgOffsetX') {
             this.selectedShape.bgOffsetX = value;
-        } else if(prop === 'bgOffsetY') {
+        } else if (prop === 'bgOffsetY') {
             this.selectedShape.bgOffsetY = value;
-        } else if(prop === 'bgScale') {
+        } else if (prop === 'bgScale') {
             this.selectedShape.bgScale = value;
         } else {
             this.selectedShape[prop] = value;
@@ -1154,44 +1239,103 @@ class ShapeManager {
         this.redraw();
     }
     bringToFront() {
-        if(!this.selectedShape || !this.undoManager) return;
-        const oldIndex = this.shapes.indexOf(this.selectedShape);
-        const newIndex = this.shapes.length - 1;
+        if (!this.selectedShape || !this.undoManager) return;
+        const shape = this.selectedShape;
+        const oldIndex = this.shapes.indexOf(shape);
+        if (oldIndex === this.shapes.length - 1) return;
+        const beforeShapes = [...this.shapes];
         this.undoManager.execute({
             execute: () => {
-                this.shapes.splice(oldIndex, 1);
-                this.shapes.push(this.selectedShape);
-                this.redraw();
+                const currentIndex = this.shapes.indexOf(shape);
+                if (currentIndex !== -1) {
+                    this.shapes.splice(currentIndex, 1);
+                    this.shapes.push(shape);
+                    this.redraw();
+                    if (typeof rebuildTracks === 'function') rebuildTracks();
+                }
             },
             undo: () => {
-                const idx = this.shapes.indexOf(this.selectedShape);
-                this.shapes.splice(idx, 1);
-                this.shapes.splice(oldIndex, 0, this.selectedShape);
+                this.shapes.length = 0;
+                beforeShapes.forEach(s => this.shapes.push(s));
                 this.redraw();
+                if (typeof rebuildTracks === 'function') rebuildTracks();
             }
         });
     }
     sendToBack() {
-        if(!this.selectedShape || !this.undoManager) return;
-        const oldIndex = this.shapes.indexOf(this.selectedShape);
+        if (!this.selectedShape || !this.undoManager) return;
+        const shape = this.selectedShape;
+        const oldIndex = this.shapes.indexOf(shape);
+        if (oldIndex === 0) return;
+        const beforeShapes = [...this.shapes];
         this.undoManager.execute({
             execute: () => {
-                this.shapes.splice(oldIndex, 1);
-                this.shapes.unshift(this.selectedShape);
-                this.redraw();
+                const currentIndex = this.shapes.indexOf(shape);
+                if (currentIndex !== -1) {
+                    this.shapes.splice(currentIndex, 1);
+                    this.shapes.unshift(shape);
+                    this.redraw();
+                    if (typeof rebuildTracks === 'function') rebuildTracks();
+                }
             },
             undo: () => {
-                const idx = this.shapes.indexOf(this.selectedShape);
-                this.shapes.splice(idx, 1);
-                this.shapes.splice(oldIndex, 0, this.selectedShape);
+                this.shapes.length = 0;
+                beforeShapes.forEach(s => this.shapes.push(s));
                 this.redraw();
+                if (typeof rebuildTracks === 'function') rebuildTracks();
+            }
+        });
+    }
+    bringForward() {
+        if (!this.selectedShape || !this.undoManager) return;
+        const shape = this.selectedShape;
+        const oldIndex = this.shapes.indexOf(shape);
+        if (oldIndex === this.shapes.length - 1) return;
+        const beforeShapes = [...this.shapes];
+        this.undoManager.execute({
+            execute: () => {
+                const currentIndex = this.shapes.indexOf(shape);
+                if (currentIndex !== -1 && currentIndex < this.shapes.length - 1) {
+                    [this.shapes[currentIndex], this.shapes[currentIndex + 1]] = [this.shapes[currentIndex + 1], this.shapes[currentIndex]];
+                    this.redraw();
+                    if (typeof rebuildTracks === 'function') rebuildTracks();
+                }
+            },
+            undo: () => {
+                this.shapes.length = 0;
+                beforeShapes.forEach(s => this.shapes.push(s));
+                this.redraw();
+                if (typeof rebuildTracks === 'function') rebuildTracks();
+            }
+        });
+    }
+    sendBackward() {
+        if (!this.selectedShape || !this.undoManager) return;
+        const shape = this.selectedShape;
+        const oldIndex = this.shapes.indexOf(shape);
+        if (oldIndex === 0) return;
+        const beforeShapes = [...this.shapes];
+        this.undoManager.execute({
+            execute: () => {
+                const currentIndex = this.shapes.indexOf(shape);
+                if (currentIndex !== -1 && currentIndex > 0) {
+                    [this.shapes[currentIndex - 1], this.shapes[currentIndex]] = [this.shapes[currentIndex], this.shapes[currentIndex - 1]];
+                    this.redraw();
+                    if (typeof rebuildTracks === 'function') rebuildTracks();
+                }
+            },
+            undo: () => {
+                this.shapes.length = 0;
+                beforeShapes.forEach(s => this.shapes.push(s));
+                this.redraw();
+                if (typeof rebuildTracks === 'function') rebuildTracks();
             }
         });
     }
     copyShape() {
-        if(!this.selectedShape || !this.undoManager) return;
+        if (!this.selectedShape || !this.undoManager) return;
         let newShape;
-        if(this.selectedShape.type === "group") {
+        if (this.selectedShape.type === "group") {
             const original = this.selectedShape;
             newShape = new Group(original.name + " Copy");
             newShape.x = original.x + 20;
@@ -1216,7 +1360,7 @@ class ShapeManager {
             newShape.shadowOpacity = original.shadowOpacity;
             original.children.forEach(child => {
                 let childCopy;
-                if(child.type === "group") {
+                if (child.type === "group") {
                     childCopy = new Group(child.name + " Copy");
                     childCopy.x = child.x;
                     childCopy.y = child.y;
@@ -1246,8 +1390,8 @@ class ShapeManager {
                     childCopy.text = child.text;
                     childCopy.fontSize = child.fontSize;
                     childCopy.fontFamily = child.fontFamily;
-                    if(child.imageObj) childCopy.imageObj = child.imageObj;
-                    if(child.points) {
+                    if (child.imageObj) childCopy.imageObj = child.imageObj;
+                    if (child.points) {
                         childCopy.points = JSON.parse(JSON.stringify(child.points));
                     }
                 }
@@ -1275,9 +1419,9 @@ class ShapeManager {
         this.closeModal();
     }
     removeShape() {
-        if(!this.selectedShape || !this.undoManager) return;
+        if (!this.selectedShape || !this.undoManager) return;
         const index = this.shapes.indexOf(this.selectedShape);
-        if(index > -1) {
+        if (index > -1) {
             this.undoManager.execute(new ObjectLifecycleCommand(
                 this.shapes, this.selectedShape, 'remove', index, () => {
                     this.selectedShape = null;
@@ -1286,53 +1430,88 @@ class ShapeManager {
             ));
             this.closeModal();
             this.closeKeyframes();
-            if(this.openBtn) this.openBtn.style.display = 'none';
-            if(this.kfOpenBtn) this.kfOpenBtn.style.display = 'none';
+            if (this.openBtn) this.openBtn.style.display = 'none';
+            if (this.kfOpenBtn) this.kfOpenBtn.style.display = 'none';
             this.recalculateGlobalDuration();
             this.renderObjectsList();
         }
+    }
+    flipHorizontal() {
+        if (!this.selectedShape) return;
+        const oldScaleX = this.selectedShape.scaleX;
+        const newScaleX = -oldScaleX;
+        this.undoManager.execute(new PropertyCommand(
+            this.selectedShape, 'scaleX', oldScaleX, newScaleX, () => this.redraw()
+        ));
+    }
+    flipVertical() {
+        if (!this.selectedShape) return;
+        const oldScaleY = this.selectedShape.scaleY;
+        const newScaleY = -oldScaleY;
+        this.undoManager.execute(new PropertyCommand(
+            this.selectedShape, 'scaleY', oldScaleY, newScaleY, () => this.redraw()
+        ));
+    }
+    getCurrentFontIndex() {
+        if (!this.selectedShape) return 0;
+        const currentFont = this.selectedShape.fontFamily || 'Arial, Helvetica, sans-serif';
+        const index = FONT_LIST.findIndex(f => f.value === currentFont);
+        return index === -1 ? 0 : index;
+    }
+    nextFont() {
+        if (!this.selectedShape || this.selectedShape.type !== 'text') return;
+        const currentIndex = this.getCurrentFontIndex();
+        const nextIndex = (currentIndex + 1) % FONT_LIST.length;
+        const newFont = FONT_LIST[nextIndex];
+        this.selectedShape.fontFamily = newFont.value;
+        const fontSelect = document.getElementById('fontFamilySelect');
+        if (fontSelect) {
+            fontSelect.value = newFont.value;
+        }
+        this.redraw();
+    }
+    prevFont() {
+        if (!this.selectedShape || this.selectedShape.type !== 'text') return;
+        const currentIndex = this.getCurrentFontIndex();
+        const prevIndex = (currentIndex - 1 + FONT_LIST.length) % FONT_LIST.length;
+        const newFont = FONT_LIST[prevIndex];
+        this.selectedShape.fontFamily = newFont.value;
+        const fontSelect = document.getElementById('fontFamilySelect');
+        if (fontSelect) {
+            fontSelect.value = newFont.value;
+        }
+        this.redraw();
     }
     buildTrack(shape) {
         const fps = window.animationState.fps;
         const duration = window.animationState.duration;
         const totalFrames = Math.ceil(duration * fps);
-    
         shape.track = new Array(totalFrames);
-    
-        for(let f = 0; f < totalFrames; f++){
+        for (let f = 0; f < totalFrames; f++) {
             const time = f / fps;
             let prev = null;
             let next = null;
-    
-            for(let kf of shape.keyframes){
-                if(kf.time <= time) prev = kf;
-                if(kf.time > time){
+            for (let kf of shape.keyframes) {
+                if (kf.time <= time) prev = kf;
+                if (kf.time > time) {
                     next = kf;
                     break;
                 }
             }
-    
-            if(!prev){
+            if (!prev) {
                 shape.track[f] = null;
                 continue;
             }
-    
-            if(!next){
+            if (!next) {
                 shape.track[f] = prev.state;
                 continue;
             }
-    
             const duration = next.time - prev.time;
             const progress = (time - prev.time) / duration;
-            
-            // Apply easing
             const easingType = window.animationState.settings.easing || 'linear';
             const eased = getEasingFunction(easingType, progress);
-    
             shape.track[f] = lerpState(prev.state, next.state, eased);
         }
-        
-        // If this is a group, also build tracks for children
         if (shape.type === 'group' && shape.children) {
             for (let child of shape.children) {
                 this.buildTrack(child);
@@ -1340,11 +1519,11 @@ class ShapeManager {
         }
     }
     scrollKeyframeIntoView(index) {
-        if(!this.kfListContainer) return;
+        if (!this.kfListContainer) return;
         const items = this.kfListContainer.children;
-        if(index < 0 || index >= items.length) return;
+        if (index < 0 || index >= items.length) return;
         const el = items[index];
-        if(!el) return;
+        if (!el) return;
         el.style.background = "rgba(0,212,255,0.15)";
         el.style.border = "1px solid #00d4ff";
         el.scrollIntoView({
@@ -1353,18 +1532,18 @@ class ShapeManager {
         });
     }
     finishShape() {
-        if(!this.selectedShape ||
+        if (!this.selectedShape ||
             (this.selectedShape.type !== "polyline" && this.selectedShape.type !== "path")) {
             showToast("Select a polyline or path", 'E');
             return;
         }
-        if(this.selectedShape.points.length < 2) {
+        if (this.selectedShape.points.length < 2) {
             showToast("Need at least 2 points to finish", 'E');
             return;
         }
         const oldFinished = this.selectedShape.finished;
         const oldEditable = this.selectedShape.editable;
-        if(this.undoManager) {
+        if (this.undoManager) {
             this.undoManager.execute({
                 execute: () => {
                     this.selectedShape.finished = true;
@@ -1390,7 +1569,7 @@ class ShapeManager {
         }
     }
     reEditShape() {
-        if(!this.selectedShape ||
+        if (!this.selectedShape ||
             (this.selectedShape.type !== "polyline" && this.selectedShape.type !== "path")) {
             return;
         }
@@ -1402,34 +1581,34 @@ class ShapeManager {
         this.syncUI();
     }
     smoothCorners(smoothness = 0.3, preview = false) {
-        if(!this.selectedShape ||
+        if (!this.selectedShape ||
             (this.selectedShape.type !== "polyline" && this.selectedShape.type !== "path")) {
             return;
         }
-        if(this.selectedShape.points.length < 3) {
+        if (this.selectedShape.points.length < 3) {
             showToast("Need at least 3 points to smooth", 'E');
             return;
         }
-        if(!this._originalPoints) {
+        if (!this._originalPoints) {
             this._originalPoints = JSON.parse(JSON.stringify(this.selectedShape.points));
         }
-        if(this.selectedShape.type === "polyline") {
+        if (this.selectedShape.type === "polyline") {
             this.selectedShape.type = "path";
             this.selectedShape.points.forEach(p => {
-                if(!p.in) p.in = {
+                if (!p.in) p.in = {
                     x: 0,
                     y: 0
                 };
-                if(!p.out) p.out = {
+                if (!p.out) p.out = {
                     x: 0,
                     y: 0
                 };
-                if(p.curve === undefined) p.curve = false;
+                if (p.curve === undefined) p.curve = false;
             });
         }
         const pts = this.selectedShape.points;
         const smooth = smoothness || 0.3;
-        for(let i = 1; i < pts.length - 1; i++) {
+        for (let i = 1; i < pts.length - 1; i++) {
             const prev = pts[i - 1];
             const curr = pts[i];
             const next = pts[i + 1];
@@ -1443,7 +1622,7 @@ class ShapeManager {
             };
             const distPrev = Math.hypot(toPrev.x, toPrev.y);
             const distNext = Math.hypot(toNext.x, toNext.y);
-            if(distPrev < 0.1 || distNext < 0.1) continue;
+            if (distPrev < 0.1 || distNext < 0.1) continue;
             const handleLen = Math.min(distPrev, distNext) * smooth;
             curr.in = {
                 x: (toPrev.x / distPrev) * handleLen,
@@ -1455,14 +1634,14 @@ class ShapeManager {
             };
             curr.curve = true;
         }
-        if(pts.length > 2) {
+        if (pts.length > 2) {
             const first = pts[0];
             const last = pts[pts.length - 1];
             const isClosed = (
                 Math.abs(first.x - last.x) < 0.1 &&
                 Math.abs(first.y - last.y) < 0.1
             );
-            if(isClosed && pts.length > 2) {
+            if (isClosed && pts.length > 2) {
                 const prev = pts[pts.length - 2];
                 const curr = pts[0];
                 const next = pts[1];
@@ -1476,7 +1655,7 @@ class ShapeManager {
                 };
                 const distPrev = Math.hypot(toPrev.x, toPrev.y);
                 const distNext = Math.hypot(toNext.x, toNext.y);
-                if(distPrev > 0.1 && distNext > 0.1) {
+                if (distPrev > 0.1 && distNext > 0.1) {
                     const handleLen = Math.min(distPrev, distNext) * smooth;
                     curr.in = {
                         x: (toPrev.x / distPrev) * handleLen,
@@ -1490,7 +1669,7 @@ class ShapeManager {
                 }
             }
         }
-        if(!preview) {
+        if (!preview) {
             this._originalPoints = null;
             this.redraw();
             showToast(`Corners smoothed (${Math.round(smooth * 100)}%)`, 'S');
@@ -1499,7 +1678,7 @@ class ShapeManager {
         }
     }
     cancelSmoothPreview() {
-        if(this._originalPoints && this.selectedShape) {
+        if (this._originalPoints && this.selectedShape) {
             this.selectedShape.points = this._originalPoints;
             this._originalPoints = null;
             this.redraw();
@@ -1510,7 +1689,7 @@ class ShapeManager {
     }
     initSmoothnessSlider() {
         const container = document.getElementById('smoothnessSliderContainer');
-        if(!container) return;
+        if (!container) return;
         this.smoothnessValue = this.smoothnessValue || 0.3;
         container.innerHTML = '';
         const sliderWrapper = createRNSlider({
@@ -1524,7 +1703,7 @@ class ShapeManager {
             height: 50,
             onChange: (v) => {
                 this.smoothnessValue = v;
-                if(this.selectedShape && !this.selectedShape.finished) {
+                if (this.selectedShape && !this.selectedShape.finished) {
                     this.smoothCorners(v, true);
                 }
             },
@@ -1534,5 +1713,85 @@ class ShapeManager {
         });
         container.appendChild(sliderWrapper);
         container.style.display = 'block';
+    }
+    replaceImage(shape) {
+        if (shape.type !== 'image') return;
+        const fileInput = document.getElementById('replaceImageInput');
+        if (fileInput) {
+            const newFileInput = fileInput.cloneNode(true);
+            fileInput.parentNode.replaceChild(newFileInput, fileInput);
+            newFileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const oldImageObj = shape.imageObj;
+                        shape.imageObj = img;
+                        this.updateImagePreview(shape);
+                        if (this.undoManager) {
+                            const replaceCommand = {
+                                execute: () => {
+                                    shape.imageObj = img;
+                                    this.updateImagePreview(shape);
+                                    this.redraw();
+                                },
+                                undo: () => {
+                                    shape.imageObj = oldImageObj;
+                                    this.updateImagePreview(shape);
+                                    this.redraw();
+                                }
+                            };
+                            this.undoManager.execute(replaceCommand);
+                        }
+                        this.redraw();
+                        showToast("Image replaced successfully", 'S');
+                    };
+                    img.src = evt.target.result;
+                };
+                reader.readAsDataURL(file);
+                newFileInput.value = '';
+            });
+            newFileInput.click();
+        }
+    }
+    removeImage(shape) {
+        if (shape.type !== 'image') return;
+        const oldImageObj = shape.imageObj;
+        shape.imageObj = null;
+        this.updateImagePreview(shape);
+        this.redraw();
+        if (this.undoManager) {
+            const removeCommand = {
+                execute: () => {
+                    shape.imageObj = null;
+                    this.updateImagePreview(shape);
+                    this.redraw();
+                },
+                undo: () => {
+                    shape.imageObj = oldImageObj;
+                    this.updateImagePreview(shape);
+                    this.redraw();
+                }
+            };
+            this.undoManager.execute(removeCommand);
+        }
+        showToast("Image removed", 'S');
+    }
+    updateImagePreview(shape) {
+        const previewDiv = document.getElementById('currentImagePreview');
+        if (!previewDiv) return;
+        previewDiv.innerHTML = '';
+        if (shape.imageObj) {
+            const img = document.createElement('img');
+            img.src = shape.imageObj.src;
+            img.style.maxWidth = '100%';
+            img.style.maxHeight = '100%';
+            img.style.objectFit = 'contain';
+            previewDiv.appendChild(img);
+        } else {
+            previewDiv.innerHTML = '<span style="color: #888;">No image</span>';
+        }
     }
 }
