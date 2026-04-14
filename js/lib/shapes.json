@@ -1,1 +1,56 @@
 
+[
+    {
+        "name": "Basic Star",
+        "type": "star",
+        "size": 80,
+        "color": "#ffd700",
+        "borderColor": "#ffaa00",
+        "borderWidth": 2
+    },
+    {
+        "name": "Red Heart",
+        "type": "path",
+        "size": 80,
+        "color": "#ff6b6b",
+        "borderColor": "#ff4444",
+        "borderWidth": 2,
+        "points": [
+            { "x": 0, "y": -30 }, { "x": 20, "y": -50 }, { "x": 40, "y": -30 },
+            { "x": 40, "y": 0 }, { "x": 0, "y": 40 }, { "x": -40, "y": 0 },
+            { "x": -40, "y": -30 }, { "x": -20, "y": -50 }, { "x": 0, "y": -30 }
+        ]
+    },
+    {
+        "name": "Blue Circle",
+        "type": "circle",
+        "size": 70,
+        "color": "#00d4ff",
+        "borderColor": "#0099cc",
+        "borderWidth": 2
+    },
+    {
+        "name": "Green Triangle",
+        "type": "triangle",
+        "size": 80,
+        "color": "#4ecdc4",
+        "borderColor": "#2d9c93",
+        "borderWidth": 2
+    },
+    {
+        "name": "Orange Arrow",
+        "type": "arrow",
+        "size": 70,
+        "color": "#ff9f43",
+        "borderColor": "#e67e22",
+        "borderWidth": 2
+    },
+    {
+        "name": "Purple Pentagon",
+        "type": "pentagon",
+        "size": 70,
+        "color": "#a55eea",
+        "borderColor": "#8b44c7",
+        "borderWidth": 2
+    }
+]
