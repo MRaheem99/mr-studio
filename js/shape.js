@@ -58,6 +58,14 @@ class Shape {
         this.locked = false;
         this.visible = true;
         this.id = Date.now() + Math.random();
+        this.filterBrightness = 100;
+        this.filterContrast = 100;
+        this.filterSaturation = 100;
+        this.filterBlur = 0;
+        this.filterGrayscale = 0;
+        this.filterSepia = 0;
+        this.filterHueRotate = 0;
+        this.filterInvert = 0;
         if(type === "polyline") {
             this.points = [{
                 x: -50,
@@ -209,6 +217,18 @@ class Shape {
             }
         });
     }
+    getTextBounds() {
+        if (this.type !== 'text') return { width: this.size, height: this.size };
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
+        let fontFamily = this.fontFamily || 'Arial, Helvetica, sans-serif';
+        fontFamily = fontFamily.replace(/'/g, '"');
+        tempCtx.font = `${this.fontSize}px ${fontFamily}`;
+        const metrics = tempCtx.measureText(this.text || 'Hello');
+        const width = metrics.width;
+        const height = this.fontSize * 1.2;
+        return { width, height };
+    }
     applyTransformToPoints() {
         if(!(this.type === "polyline" || this.type === "path") || !this.points) return;
         const tanX = Math.tan(this.skewX);
@@ -236,249 +256,96 @@ class Shape {
         this.skewX = 0;
         this.skewY = 0;
     }
-    _drawDrawing_L(ctx) {
-        if(!this.segments || this.segments.length === 0) return;
-        ctx.save();
-        ctx.translate(this.x, this.y);
-        ctx.rotate(this.rotation);
-        ctx.transform(this.scaleX, Math.tan(this.skewY), Math.tan(this.skewX), this.scaleY, 0, 0);
-        for(let i = 0; i < this.segments.length; i++) {
-            const segment = this.segments[i];
-            if(segment.length < 2) continue;
-            const brushType = this.segmentBrushTypes ? this.segmentBrushTypes[i] : 'solid';
-            const strokeColor = this.segmentColors ? this.segmentColors[i] : this.color;
-            const strokeWidth = this.segmentWidths ? this.segmentWidths[i] : this.borderWidth;
-            const strokeOpacity = this.segmentOpacities ? this.segmentOpacities[i] : this.opacity;
-            let taperStart = null;
-            let taperEnd = null;
-            if(brushType === 'tapered' && this.segmentTaperStarts && this.segmentTaperEnds) {
-                taperStart = this.segmentTaperStarts[i];
-                taperEnd = this.segmentTaperEnds[i];
-            }
-            if(brushType === 'tapered' && taperStart !== null && taperEnd !== null) {
-                ctx.save();
-                ctx.beginPath();
-                const totalPoints = segment.length;
-                for(let j = 0; j < totalPoints; j++) {
-                    const p = segment[j];
-                    const t = j / (totalPoints - 1);
-                    let widthFactor;
-                    if(t < 0.5) {
-                        widthFactor = taperStart + (strokeWidth - taperStart) * (t * 2);
-                    } else {
-                        widthFactor = strokeWidth - (strokeWidth - taperEnd) * ((t - 0.5) * 2);
-                    }
-                    const w = widthFactor / 2;
-                    if(j === 0) ctx.moveTo(p.x, p.y - w);
-                    else ctx.lineTo(p.x, p.y - w);
-                }
-                for(let j = totalPoints - 1; j >= 0; j--) {
-                    const p = segment[j];
-                    const t = j / (totalPoints - 1);
-                    let widthFactor;
-                    if(t < 0.5) {
-                        widthFactor = taperStart + (strokeWidth - taperStart) * (t * 2);
-                    } else {
-                        widthFactor = strokeWidth - (strokeWidth - taperEnd) * ((t - 0.5) * 2);
-                    }
-                    const w = widthFactor / 2;
-                    ctx.lineTo(p.x, p.y + w);
-                }
-                ctx.closePath();
-                ctx.fillStyle = strokeColor;
-                ctx.globalAlpha = strokeOpacity;
-                ctx.fill();
-                ctx.restore();
-            } else if(brushType === 'dotted') {
-                ctx.save();
-                ctx.beginPath();
-                for(let j = 0; j < segment.length - 1; j++) {
-                    const p1 = segment[j];
-                    const p2 = segment[j + 1];
-                    const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
-                    const steps = Math.ceil(dist / (strokeWidth * 2));
-                    for(let s = 0; s <= steps; s++) {
-                        const t = s / steps;
-                        const x = p1.x + (p2.x - p1.x) * t;
-                        const y = p1.y + (p2.y - p1.y) * t;
-                        ctx.beginPath();
-                        ctx.arc(x, y, strokeWidth / 3, 0, Math.PI * 2);
-                        ctx.fillStyle = strokeColor;
-                        ctx.fill();
-                    }
-                }
-                ctx.restore();
-            } else if(brushType === 'dashed') {
-                ctx.save();
-                ctx.beginPath();
-                ctx.moveTo(segment[0].x, segment[0].y);
-                for(let j = 1; j < segment.length; j++) {
-                    ctx.lineTo(segment[j].x, segment[j].y);
-                }
-                ctx.setLineDash([strokeWidth * 3, strokeWidth * 2]);
-                ctx.strokeStyle = strokeColor;
-                ctx.lineWidth = strokeWidth;
-                ctx.lineCap = 'round';
-                ctx.stroke();
-                ctx.restore();
-            } else if(brushType === 'wavy') {
-                ctx.save();
-                ctx.beginPath();
-                const amplitude = strokeWidth / 2;
-                for(let j = 0; j < segment.length - 1; j++) {
-                    const p1 = segment[j];
-                    const p2 = segment[j + 1];
-                    const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
-                    const perpX = -Math.sin(angle);
-                    const perpY = Math.cos(angle);
-                    const steps = 15;
-                    for(let s = 0; s <= steps; s++) {
-                        const t = s / steps;
-                        const x = p1.x + (p2.x - p1.x) * t;
-                        const y = p1.y + (p2.y - p1.y) * t;
-                        const offset = Math.sin(t * Math.PI * 4) * amplitude;
-                        const wx = x + perpX * offset;
-                        const wy = y + perpY * offset;
-                        if(j === 0 && s === 0) ctx.moveTo(wx, wy);
-                        else ctx.lineTo(wx, wy);
-                    }
-                }
-                ctx.strokeStyle = strokeColor;
-                ctx.lineWidth = strokeWidth / 2;
-                ctx.lineCap = 'round';
-                ctx.stroke();
-                ctx.restore();
-            } else if(brushType === 'zigzag') {
-                ctx.save();
-                ctx.beginPath();
-                const amplitude = strokeWidth / 2;
-                for(let j = 0; j < segment.length - 1; j++) {
-                    const p1 = segment[j];
-                    const p2 = segment[j + 1];
-                    const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
-                    const perpX = -Math.sin(angle);
-                    const perpY = Math.cos(angle);
-                    const midX = (p1.x + p2.x) / 2;
-                    const midY = (p1.y + p2.y) / 2;
-                    const zigX = midX + perpX * amplitude;
-                    const zigY = midY + perpY * amplitude;
-                    if(j === 0) ctx.moveTo(p1.x, p1.y);
-                    ctx.lineTo(zigX, zigY);
-                    ctx.lineTo(p2.x, p2.y);
-                }
-                ctx.strokeStyle = strokeColor;
-                ctx.lineWidth = strokeWidth / 2;
-                ctx.lineCap = 'round';
-                ctx.stroke();
-                ctx.restore();
-            } else if(brushType === 'glow') {
-                ctx.save();
-                ctx.shadowColor = strokeColor;
-                ctx.shadowBlur = 15;
-                ctx.beginPath();
-                ctx.moveTo(segment[0].x, segment[0].y);
-                for(let j = 1; j < segment.length; j++) {
-                    ctx.lineTo(segment[j].x, segment[j].y);
-                }
-                ctx.strokeStyle = strokeColor;
-                ctx.lineWidth = strokeWidth;
-                ctx.lineCap = 'round';
-                ctx.stroke();
-                ctx.shadowBlur = 0;
-                ctx.restore();
-            } else if(brushType === 'gradient') {
-                ctx.save();
-                const firstPoint = segment[0];
-                const lastPoint = segment[segment.length - 1];
-                const gradient = ctx.createLinearGradient(firstPoint.x, firstPoint.y, lastPoint.x, lastPoint.y);
-                gradient.addColorStop(0, this.segmentColors?.[i] || strokeColor);
-                gradient.addColorStop(1, '#ff9f43');
-                ctx.beginPath();
-                ctx.moveTo(segment[0].x, segment[0].y);
-                for(let j = 1; j < segment.length; j++) {
-                    ctx.lineTo(segment[j].x, segment[j].y);
-                }
-                ctx.strokeStyle = gradient;
-                ctx.lineWidth = strokeWidth;
-                ctx.lineCap = 'round';
-                ctx.stroke();
-                ctx.restore();
-            } else if(brushType === 'texture') {
-                ctx.save();
-                ctx.fillStyle = strokeColor;
-                for(let j = 0; j < segment.length; j++) {
-                    const p = segment[j];
-                    for(let dx = -strokeWidth / 2; dx <= strokeWidth / 2; dx += strokeWidth / 3) {
-                        for(let dy = -strokeWidth / 2; dy <= strokeWidth / 2; dy += strokeWidth / 3) {
-                            ctx.fillRect(p.x + dx, p.y + dy, Math.max(1, strokeWidth / 4), Math.max(1, strokeWidth / 4));
-                        }
-                    }
-                }
-                ctx.restore();
-            } else {
-                ctx.beginPath();
-                ctx.moveTo(segment[0].x, segment[0].y);
-                for(let j = 1; j < segment.length; j++) {
-                    ctx.lineTo(segment[j].x, segment[j].y);
-                }
-                ctx.strokeStyle = strokeColor;
-                ctx.globalAlpha = strokeOpacity;
-                ctx.lineWidth = strokeWidth;
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-                ctx.stroke();
-            }
-        }
-        ctx.restore();
-    }
     _drawDrawing(ctx) {
-    if(!this.strokesData || this.strokesData.length === 0) return;
-    
-    ctx.save();
-    ctx.translate(this.x, this.y);
-    ctx.rotate(this.rotation);
-    ctx.transform(this.scaleX, Math.tan(this.skewY), Math.tan(this.skewX), this.scaleY, 0, 0);
-    
-    if(this.strokeFillColors) {
-        for(let i = 0; i < this.strokesData.length; i++) {
-            const stroke = this.strokesData[i];
-            const points = stroke.points;
-            const fillColorValue = this.strokeFillColors[i];
-            
-            if(fillColorValue && points.length >= 3) {
-                const first = points[0];
-                const last = points[points.length - 1];
-                const isClosed = Math.hypot(first.x - last.x, first.y - last.y) < 15;
-                
-                if(isClosed) {
-                    ctx.beginPath();
+        if(!this.strokesData || this.strokesData.length === 0) return;
+        ctx.save();
+        if(this.bgImageObj) {
+            ctx.save();
+            ctx.beginPath();
+            for(let stroke of this.strokesData) {
+                const points = stroke.points;
+                if(points.length >= 2) {
                     ctx.moveTo(points[0].x, points[0].y);
                     for(let j = 1; j < points.length; j++) {
                         ctx.lineTo(points[j].x, points[j].y);
                     }
-                    ctx.closePath();
-                    ctx.fillStyle = fillColorValue;
-                    ctx.fill();
+                }
+            }
+            ctx.clip();
+            let drawW = this.size;
+            let drawH = this.size;
+            if(this.bgFit === "contain") {
+                const ratio = Math.min(drawW / this.bgImageObj.width, drawH / this.bgImageObj.height);
+                drawW = this.bgImageObj.width * ratio;
+                drawH = this.bgImageObj.height * ratio;
+            } else if(this.bgFit === "cover") {
+                const ratio = Math.max(drawW / this.bgImageObj.width, drawH / this.bgImageObj.height);
+                drawW = this.bgImageObj.width * ratio;
+                drawH = this.bgImageObj.height * ratio;
+            }
+            const scaledW = drawW * this.bgScale;
+            const scaledH = drawH * this.bgScale;
+            ctx.drawImage(
+                this.bgImageObj,
+                -scaledW / 2 + this.bgOffsetX,
+                -scaledH / 2 + this.bgOffsetY,
+                scaledW,
+                scaledH
+            );
+            ctx.restore();
+        }
+        if(this.strokeFillColors) {
+            for(let i = 0; i < this.strokesData.length; i++) {
+                const stroke = this.strokesData[i];
+                const points = stroke.points;
+                const fillColorValue = this._tempFillColors?.[i] || this.strokeFillColors?.[i];
+                if(fillColorValue && points.length >= 3) {
+                    const first = points[0];
+                    const last = points[points.length - 1];
+                    const isClosed = Math.hypot(first.x - last.x, first.y - last.y) < 15;
+                    if(isClosed) {
+                        ctx.beginPath();
+                        ctx.moveTo(points[0].x, points[0].y);
+                        for(let j = 1; j < points.length; j++) {
+                            ctx.lineTo(points[j].x, points[j].y);
+                        }
+                        ctx.closePath();
+                        ctx.fillStyle = fillColorValue;
+                        ctx.fill();
+                    }
                 }
             }
         }
+        for(let stroke of this.strokesData) {
+            drawStroke(ctx, stroke.points, stroke.width, stroke.color, stroke.opacity, 
+                       stroke.brushType, stroke.taperStart, stroke.taperEnd);
+        }
+        ctx.restore();
     }
-    for(let stroke of this.strokesData) {
-        drawStroke(ctx, stroke.points, stroke.width, stroke.color, stroke.opacity, 
-                   stroke.brushType, stroke.taperStart, stroke.taperEnd);
-    }
-    
-    ctx.restore();
-}
     draw(ctx) {
         if (this.visible === false) return;
+        
+        if(this.isFloodFill && this.floodFillData) {
+            ctx.putImageData(this.floodFillData, this.floodFillBounds.x, this.floodFillBounds.y);
+            return;
+        }
+        
+        const isSoloObject = (soloEditMode && soloEditObject === this);
+        const isSelectedObj = (this === selectedShape) || (selectedShapes && selectedShapes.includes(this));
+        let cOpacity = 1;
+        
+        if (soloEditMode && !isSoloObject && !isSelectedObj) {
+            cOpacity = 0.5;
+        } else {
+            cOpacity = this.opacity;
+        }
+    
         if (this.parentGroup) {
             ctx.save();
             ctx.translate(this.x, this.y);
             ctx.rotate(this.rotation);
             ctx.transform(this.scaleX, Math.tan(this.skewY), Math.tan(this.skewX), this.scaleY, 0, 0);
-            ctx.globalAlpha = this.opacity;
-            
+            ctx.globalAlpha = cOpacity;
             if (this.type === 'drawing') {
                 this._drawDrawing(ctx);
             } else {
@@ -491,7 +358,9 @@ class Shape {
                     ctx.stroke();
                 }
                 if(this.type === 'text') {
-                    ctx.font = `${this.fontSize}px ${this.fontFamily}`;
+                    let fontFamily = this.fontFamily || 'Arial, Helvetica, sans-serif';
+                    fontFamily = fontFamily.replace(/'/g, '"');
+                    ctx.font = `${this.fontSize}px ${fontFamily}`;
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     ctx.fillStyle = this.color;
@@ -507,11 +376,25 @@ class Shape {
             return; 
         }
         if(this.type === 'drawing') {
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            ctx.rotate(this.rotation);
+            ctx.transform(this.scaleX, Math.tan(this.skewY), Math.tan(this.skewX), this.scaleY, 0, 0);
+            ctx.globalAlpha = cOpacity;
+            if(this.shadowBlur > 0 || this.shadowOffsetX !== 0 || this.shadowOffsetY !== 0) {
+                const r = parseInt(this.shadowColor.slice(1,3), 16);
+                const g = parseInt(this.shadowColor.slice(3,5), 16);
+                const b = parseInt(this.shadowColor.slice(5,7), 16);
+                ctx.shadowColor = `rgba(${r},${g},${b},${this.shadowOpacity})`;
+                ctx.shadowBlur = this.shadowBlur;
+                ctx.shadowOffsetX = this.shadowOffsetX;
+                ctx.shadowOffsetY = this.shadowOffsetY;
+            }
             this._drawDrawing(ctx);
-            
+            ctx.restore();
             if(this.selected && viewport.mode === 'object') {
-                this._drawPivotHandle(ctx);
-                this.drawHandles(ctx);
+                this._drawPivotHandle(ctx, cOpacity);
+                this.drawHandles(ctx, cOpacity);
             }
             return;
         }
@@ -519,7 +402,7 @@ class Shape {
         ctx.translate(this.x, this.y);
         ctx.rotate(this.rotation);
         ctx.transform(this.scaleX, Math.tan(this.skewY), Math.tan(this.skewX), this.scaleY, 0, 0);
-        ctx.globalAlpha = this.opacity;
+        ctx.globalAlpha = cOpacity;
         if(this.shadowBlur > 0 || this.shadowOffsetX !== 0 || this.shadowOffsetY !== 0) {
             const r = parseInt(this.shadowColor.slice(1, 3), 16);
             const g = parseInt(this.shadowColor.slice(3, 5), 16);
@@ -530,7 +413,14 @@ class Shape {
             ctx.shadowOffsetY = this.shadowOffsetY;
         }
         if(this.type === 'image') {
-            ctx.filter = `brightness(${this.filterBrightness}%) contrast(${this.filterContrast}%) saturate(${this.filterSaturation}%) blur(${this.filterBlur}px)`;
+            ctx.filter = `brightness(${this.filterBrightness}%) 
+                      contrast(${this.filterContrast}%) 
+                      saturate(${this.filterSaturation}%) 
+                      blur(${this.filterBlur}px)
+                      grayscale(${this.filterGrayscale}%)
+                      sepia(${this.filterSepia}%)
+                      hue-rotate(${this.filterHueRotate}deg)
+                      invert(${this.filterInvert}%)`;
         }
         ctx.fillStyle = this.color;
         ctx.strokeStyle = this.color;
@@ -557,6 +447,12 @@ class Shape {
             }
         }
         if(this.type === 'text') {
+            let fontFamily = this.fontFamily || 'Arial, Helvetica, sans-serif';
+            if (fontFamily.includes(',')) {
+                ctx.font = `${this.fontSize}px ${fontFamily}`;
+            } else {
+                ctx.font = `${this.fontSize}px ${fontFamily}, Arial, Helvetica, sans-serif`;
+            }
             ctx.font = `${this.fontSize}px ${this.fontFamily}`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -578,11 +474,19 @@ class Shape {
         }
         ctx.restore();
         if(!isDrawing && this.selected && viewport.mode === 'object') {
-            this.drawHandles(ctx);
-            this._drawPivotHandle(ctx);
+            this.drawHandles(ctx, cOpacity);
+            this._drawPivotHandle(ctx, cOpacity);
+        }
+        if(this._previewPixels && this._previewPixels.length > 0 && this._previewColor) {
+            ctx.save();
+            ctx.globalAlpha = 0.5;
+            for(let pixel of this._previewPixels) {
+                ctx.fillStyle = this._previewColor;
+                ctx.fillRect(pixel.x, pixel.y, 1, 1);
+            }
+            ctx.restore();
         }
     }
-    
     isSegmentClosed(segment) {
         if (!segment || segment.length < 3) return false;
         const first = segment[0];
@@ -590,7 +494,6 @@ class Shape {
         const distance = Math.hypot(first.x - last.x, first.y - last.y);
         return distance < 10;
     }
-    
     _drawShapePath(ctx) {
         ctx.beginPath();
         if(this.type === 'square') {
@@ -743,12 +646,12 @@ class Shape {
         );
         ctx.restore();
     }
-    _drawPivotHandle(ctx) {
-        if (this.parentGroup) {
-            return;
-        }
+    _drawPivotHandle(ctx, cOpacity) {
+        if (this.parentGroup) return;
+        
         const pivotWorld = this.getPivotWorldPosition();
         ctx.save();
+        ctx.globalAlpha = cOpacity;
         ctx.fillStyle = getComputedStyle(document.documentElement)
             .getPropertyValue('--mode-canvas').trim() || '#ff9f43';
         ctx.strokeStyle = '#ffffff';
@@ -767,7 +670,7 @@ class Shape {
         ctx.stroke();
         ctx.restore();
     }
-    drawHandles(ctx) {
+    drawHandles(ctx, cOpacity) {
         if (this.parentGroup) return;
         if(isDrawing)  return null;
         
@@ -779,17 +682,26 @@ class Shape {
         const padding = 15 / viewport.scale;
         let baseW = this.size;
         let baseH = this.size;
-        if(this.type === 'image' && this.imageObj) {
+        if (this.type === 'text') {
+            const bounds = this.getTextBounds();
+            baseW = bounds.width;
+            baseH = bounds.height;
+        }
+        if (this.type === 'image' && this.imageObj) {
             baseH = this.size * (this.imageObj.height / this.imageObj.width);
+        }
+        if (this.type === 'triangle') {
+            baseH = this.size * Math.sqrt(3) / 2;
+        }
+        if (this.type === "drawing" || this.type === "polyline" || this.type === "path") {
+            const b = this.getGeometryBounds();
+            baseW = Math.max(baseW, b.maxX - b.minX);
+            baseH = Math.max(baseH, b.maxY - b.minY);
         }
         if(this.type === 'triangle') {
             baseH = this.size * Math.sqrt(3) / 2;
         }
-        if(this.type === "polyline" || this.type === "path") {
-            const bounds = this.getGeometryBounds();
-            baseW = Math.max(baseW, bounds.maxX - bounds.minX);
-            baseH = Math.max(baseH, bounds.maxY - bounds.minY);
-        }
+        
         const halfW = (baseW / 2) * Math.abs(this.scaleX) + padding;
         const halfH = (baseH / 2) * Math.abs(this.scaleY) + padding;
         const cos = Math.cos(this.rotation);
@@ -799,6 +711,7 @@ class Shape {
             y: this.y + (lx * sin + ly * cos)
         });
         ctx.save();
+        ctx.globalAlpha = cOpacity;
         ctx.shadowColor = "rgba(0,212,255,0.35)";
         ctx.shadowBlur = 10 / viewport.scale;
         ctx.strokeStyle = "#00d4ff";
@@ -836,6 +749,7 @@ class Shape {
         corners.forEach(pos => {
             const world = localToWorld(pos.x, pos.y);
             ctx.save();
+            ctx.globalAlpha = cOpacity;
             ctx.translate(world.x, world.y);
             ctx.rotate(this.rotation);
             ctx.beginPath();
@@ -892,6 +806,7 @@ class Shape {
         skewHandles.forEach(pos => {
             const world = localToWorld(pos.x, pos.y);
             ctx.save();
+            ctx.globalAlpha = cOpacity;
             ctx.translate(world.x, world.y);
             ctx.rotate(this.rotation);
             ctx.beginPath();
@@ -1017,51 +932,13 @@ class Shape {
             const halfH = Math.max((bounds.maxY - bounds.minY) / 2, 60) + padding;
             return Math.abs(local.x) <= halfW && Math.abs(local.y) <= halfH;
         }
-        if(this.type === 'drawing' && this.strokesData) {
-            const hitDistance = 20 / (viewport?.scale || 1);
-            
-            for(let stroke of this.strokesData) {
-                for(let i = 0; i < stroke.points.length - 1; i++) {
-                    const p1 = stroke.points[i];
-                    const p2 = stroke.points[i + 1];
-                    const wp1 = this.localToWorld(p1.x, p1.y);
-                    const wp2 = this.localToWorld(p2.x, p2.y);
-                    const dx = wp2.x - wp1.x;
-                    const dy = wp2.y - wp1.y;
-                    const len = Math.hypot(dx, dy);
-                    
-                    if(len === 0) continue;
-                    
-                    const t = ((px - wp1.x) * dx + (py - wp1.y) * dy) / (len * len);
-                    
-                    if(t < 0) {
-                        const dist = Math.hypot(px - wp1.x, py - wp1.y);
-                        if(dist < hitDistance) return true;
-                    } else if(t > 1) {
-                        const dist = Math.hypot(px - wp2.x, py - wp2.y);
-                        if(dist < hitDistance) return true;
-                    } else {
-                        const projX = wp1.x + t * dx;
-                        const projY = wp1.y + t * dy;
-                        const dist = Math.hypot(px - projX, py - projY);
-                        if(dist < hitDistance) return true;
-                    }
-                }
-            }
-            
-            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-            for(let stroke of this.strokesData) {
-                for(let p of stroke.points) {
-                    const wp = this.localToWorld(p.x, p.y);
-                    minX = Math.min(minX, wp.x);
-                    maxX = Math.max(maxX, wp.x);
-                    minY = Math.min(minY, wp.y);
-                    maxY = Math.max(maxY, wp.y);
-                }
-            }
-            const padding = 30;
-            return (px >= minX - padding && px <= maxX + padding &&
-                    py >= minY - padding && py <= maxY + padding);
+        
+        if (this.type === 'text') {
+            const bounds = this.getTextBounds();
+            const halfW = (bounds.width / 2) * Math.abs(this.scaleX) + 15;
+            const halfH = (bounds.height / 2) * Math.abs(this.scaleY) + 15;
+            const local = this.worldToLocal(px, py);
+            return Math.abs(local.x) <= halfW && Math.abs(local.y) <= halfH;
         }
         let baseW = this.size;
         let baseH = this.size;
@@ -1071,7 +948,7 @@ class Shape {
         if(this.type === 'triangle') {
             baseH = this.size * Math.sqrt(3) / 2;
         }
-        if(this.type === "polyline" || this.type === "path") {
+        if(this.type === "drawing" || this.type === "polyline" || this.type === "path") {
             const b = this.getGeometryBounds();
             baseW = Math.max(baseW, b.maxX - b.minX);
             baseH = Math.max(baseH, b.maxY - b.minY);
@@ -1082,7 +959,6 @@ class Shape {
         const local = this.worldToLocal(px, py);
         return Math.abs(local.x) <= halfW && Math.abs(local.y) <= halfH;
     }
-
     getHandleAt(px, py) {
         if(this.parentGroup) return null;
         if(isDrawing)  return null;
@@ -1113,7 +989,7 @@ class Shape {
                 }
             }
         }
-        if((this.type === "polyline" || this.type === "path") && !this.finished && this.points) {
+        if((this.type === 'drawing' || this.type === "polyline" || this.type === "path") && !this.finished && this.points) {
             const hitR = 20 / (viewport?.scale || 1);
             for(let i = 0; i < this.points.length; i++) {
                 const p = this.points[i];
@@ -1126,119 +1002,15 @@ class Shape {
                 }
             }
         }
-        if(this.type === 'drawing' && this.segments) {
-            const hitR = 20 / (viewport?.scale || 1);
-            let minX = Infinity,
-                maxX = -Infinity,
-                minY = Infinity,
-                maxY = -Infinity;
-            this.segments.forEach(segment => {
-                segment.forEach(p => {
-                    minX = Math.min(minX, p.x);
-                    maxX = Math.max(maxX, p.x);
-                    minY = Math.min(minY, p.y);
-                    maxY = Math.max(maxY, p.y);
-                });
-            });
-            let baseW = Math.max(this.size, maxX - minX);
-            let baseH = Math.max(this.size, maxY - minY);
-            const padding = 12 / viewport.scale;
-            const halfW = (baseW / 2) * Math.abs(this.scaleX) + padding;
-            const halfH = (baseH / 2) * Math.abs(this.scaleY) + padding;
-            const cos = Math.cos(this.rotation);
-            const sin = Math.sin(this.rotation);
-            const toWorld = (lx, ly) => ({
-                x: this.x + (lx * cos - ly * sin),
-                y: this.y + (lx * sin + ly * cos)
-            });
-            const rotLocalY = -halfH - (35 / viewport.scale);
-            const rotWorld = toWorld(0, rotLocalY);
-            if(Math.hypot(px - rotWorld.x, py - rotWorld.y) < hitR) return 'rotate';
-            const corners = [{
-                    x: -halfW,
-                    y: -halfH
-                },
-                {
-                    x: halfW,
-                    y: -halfH
-                },
-                {
-                    x: -halfW,
-                    y: halfH
-                },
-                {
-                    x: halfW,
-                    y: halfH
-                }
-            ];
-            for(const c of corners) {
-                const w = toWorld(c.x, c.y);
-                if(Math.hypot(px - w.x, py - w.y) < hitR) return 'scale';
-            }
-            const edges = [{
-                    x: 0,
-                    y: -halfH,
-                    id: 'stretch-y-top'
-                },
-                {
-                    x: 0,
-                    y: halfH,
-                    id: 'stretch-y-bottom'
-                },
-                {
-                    x: -halfW,
-                    y: 0,
-                    id: 'stretch-x-left'
-                },
-                {
-                    x: halfW,
-                    y: 0,
-                    id: 'stretch-x-right'
-                }
-            ];
-            for(const e of edges) {
-                const w = toWorld(e.x, e.y);
-                if(Math.hypot(px - w.x, py - w.y) < hitR) return e.id;
-            }
-            const skewHandles = [{
-                    x: 0,
-                    y: -halfH - 20,
-                    id: 'skewY'
-                },
-                {
-                    x: 0,
-                    y: halfH + 20,
-                    id: 'skewY'
-                },
-                {
-                    x: -halfW - 20,
-                    y: 0,
-                    id: 'skewX'
-                },
-                {
-                    x: halfW + 20,
-                    y: 0,
-                    id: 'skewX'
-                }
-            ];
-            for(const s of skewHandles) {
-                const w = toWorld(s.x, s.y);
-                if(Math.hypot(px - w.x, py - w.y) < hitR) return s.id;
-            }
-            const pv = this.getPivotWorldPosition();
-            if(Math.hypot(px - pv.x, py - pv.y) < hitR) return 'pivot';
-            const local = this.worldToLocal(px, py);
-            const dragHalfW = baseW / 2 + 12;
-            const dragHalfH = baseH / 2 + 12;
-            if(Math.abs(local.x) <= dragHalfW && Math.abs(local.y) <= dragHalfH) {
-                return 'drag';
-            }
-            return null;
-        }
+        
         const hitR = 20 / (viewport?.scale || 1);
         let baseW = this.size;
         let baseH = this.size;
-        if(this.type === 'image' && this.imageObj) {
+        if (this.type === 'text') {
+            const bounds = this.getTextBounds();
+            baseW = bounds.width;
+            baseH = bounds.height;
+        } else if(this.type === 'image' && this.imageObj) {
             baseH = this.size * (this.imageObj.height / this.imageObj.width);
         }
         if(this.type === 'triangle') {
