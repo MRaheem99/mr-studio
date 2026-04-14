@@ -82,32 +82,22 @@ Whether you're creating explainer videos, animated intros, or full-length **YouT
 
 ---
 
-![MR Studio Logo](./img/screenshots/mrstudio-logo.png)
-
-![Animation Interface](./images/screenshots/interface.png)
-
-![Image Tools](./images/screenshots/image-shape.png)
-
-![Drawing Tools Polyline](./images/screenshots/polyline.png)
-
-![Shape Library](./images/screenshots/shape-library.png)
-
 ## 📸 See MR Studio in Action
 
 ### Main Interface
-![Main Interface](./images/screenshots/interface.png)
+![Main Interface](./img/screenshots/interface.png)
 
 ### Creating YouTube Video Intros
-![YouTube Intro Animation](./images/screenshots/image-shape.png)
+![YouTube Intro Animation](./img/screenshots/image-shape.png)
 
 ### Drawing Tools for Content Creators
-![Drawing Tools](./images/screenshots/polyline.png)
+![Drawing Tools](./img/screenshots/polyline.png)
 
 ### Keyframe Animation Timeline
-![Shape Library](./images/screenshots/shape-library.png)
+![Shape Library](./img/screenshots/shape-library.png)
 
 ### Export for YouTube Videos
-![Advanced Features](./images/screenshots/features.png)
+![Advanced Features](./img/screenshots/features.png)
 
 ---
 
