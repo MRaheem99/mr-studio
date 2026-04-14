@@ -12,7 +12,7 @@
 
 **A powerful, lightweight, web-based javascript 2D animation software for YouTubers, animation channels, and content creators**
 
-![MR Studio Banner](./images/banner.png)
+![MR Studio Banner](./img/screenshots/mrstudio-logo.png)
 
 **Live Demo:** [https://MRaheem99.github.io/mr-studio](https://MRaheem99.github.io/mr-studio)
 
