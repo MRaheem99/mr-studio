@@ -113,7 +113,7 @@ git clone https://github.com/MRaheem99/mr-studio.git
 cd mr-studio
 
 # Open index.html in your browser
-# That's it! No installation needed!
+# That is it! No installation needed!
 ---
 
 ## 📖 About
