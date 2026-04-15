@@ -252,6 +252,7 @@ cd mr-studio
 **Ungroup** - Select group and press Ctrl+Shift+G
 
 ### 🛠️ Technology Stack
+```
 
 Technology	Purpose
 HTML5 Canvas	Rendering engine
@@ -262,8 +263,9 @@ MediaRecorder API	Video export
 JSZip	PNG sequence export
 gif.js	GIF export
 
-### 📁 Project Structure
+```
 
+### 📁 Project Structure
 ```
 
 mr-studio/
@@ -274,18 +276,23 @@ mr-studio/
 │   ├── globals.js          # Global variables
 │   ├── shape.js            # Shape class
 │   ├── group.js            # Group class
+│   ├── help-content.js     # Help content
 │   ├── animator.js         # Animation engine
 │   ├── operator.js         # Main orchestration
 │   ├── shape-manager.js    # Property management
+│   ├── shape-presets.js    # Shape presets
 │   ├── undo-manager.js     # Undo/redo system
 │   ├── tracks.js           # Timeline tracks
 │   ├── freeDrawingTools.js # Drawing tools
 │   ├── advanced-export.js  # Export functionality
 │   ├── fill-bucket.js      # Fill bucket tool
 │   ├── shortcuts.js        # Keyboard shortcuts
+│   ├── rn-slider.js        # RN Slider class
+│   ├── sliderAdapter.js    # Slider adapter
 │   └── lib/
 │       ├── gif.js          # GIF encoder
 │       └── gif.worker.js   # GIF worker
+│       └── shapes.json     # Shapes library
 ├── img/
 │   └── icons/              # Shape icons
 └── README.md
