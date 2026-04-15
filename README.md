@@ -103,23 +103,6 @@ Whether you are a professional animator, YouTuber, creating animation on YouTube
 
 ---
 
-## Installation (Takes 30 Seconds!)
-
-```bash
-
-# Clone the repository
-git clone https://github.com/MRaheem99/mr-studio.git
-
-# Navigate to folder
-cd mr-studio
-
-# Open index.html in your browser
-# That is it! No installation needed!
-
-```
-
----
-
 ## ⌨️ Keyboard Shortcuts
 
 ### Selection & Transform
@@ -225,6 +208,7 @@ cd mr-studio
 ### Installation
 
 ```bash
+
 # Clone the repository
 git clone https://github.com/MRaheem99/mr-studio.git
 
@@ -236,36 +220,43 @@ cd mr-studio
 python -m http.server 8000
 # Then visit http://localhost:8000
 
+```
 
-Your First Animation
-Create a shape - Click "Add Shape" or press N
+---
 
-Add keyframes - Click on the timeline at different times
+## Your First Animation
 
-Transform the shape - Move, scale, or rotate using handles
+**Create a shape** - Click "Add Shape" or press N
 
-Play animation - Press Space to watch your animation
+**Add keyframes** - Click on the timeline at different times
 
-Drawing with Brushes
-Select Brush - Press B or click the Brush button
+**Transform the shape** - Move, scale, or rotate using handles
 
-Choose brush type - Select from 9 different brush styles
+**Play animation** - Press Space to watch your animation
 
-Adjust settings - Set stroke width, color, opacity, hardness
+# Drawing with Brushes
 
-Draw - Click and drag on canvas
+**Select Brush** - Press B or click the Brush button
 
-Finish - Click "Finish Drawing" to convert to shape
+**Choose brush type** - Select from 9 different brush styles
 
-Working with Groups
-Select multiple objects - Ctrl+Click or marquee selection
+**Adjust settings** - Set stroke width, color, opacity, hardness
 
-Group - Press Ctrl+G to group
+**Draw** - Click and drag on canvas
 
-Transform group - Use handles to transform entire group
+**Finish** - Click "Finish Drawing" to convert to shape
 
-Ungroup - Select group and press Ctrl+Shift+G
+# Working with Groups
 
+**Select multiple objects** - Ctrl+Click or marquee selection
+
+**Group** - Press Ctrl+G to group
+
+**Transform group** - Use handles to transform entire group
+
+**Ungroup** - Select group and press Ctrl+Shift+G
+
+---
 
 ### 🛠️ Technology Stack
 Technology	Purpose
