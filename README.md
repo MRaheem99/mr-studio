@@ -251,22 +251,29 @@ cd mr-studio
 
 **Ungroup** - Select group and press Ctrl+Shift+G
 
-### 🛠️ Technology Stack
 ```
+### 🛠️ Technology Stack
 
 Technology	Purpose
+
 HTML5 Canvas	Rendering engine
+
 Vanilla JavaScript	Core logic (no frameworks)
+
 CSS3	Styling and UI
+
 Canvas API	Drawing and transformations
+
 MediaRecorder API	Video export
+
 JSZip	PNG sequence export
+
 gif.js	GIF export
 
 ```
 
-### 📁 Project Structure
 ```
+### 📁 Project Structure
 
 mr-studio/
 ├── index.html              # Main entry point
