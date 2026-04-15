@@ -251,8 +251,8 @@ cd mr-studio
 
 **Ungroup** - Select group and press Ctrl+Shift+G
 
-```
 ### 🛠️ Technology Stack
+```
 
 Technology	Purpose
 
@@ -272,8 +272,8 @@ gif.js	GIF export
 
 ```
 
-```
 ### 📁 Project Structure
+```
 
 mr-studio/
 ├── index.html              # Main entry point
