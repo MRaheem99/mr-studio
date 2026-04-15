@@ -268,6 +268,7 @@ MediaRecorder API	Video export
 JSZip	PNG sequence export
 gif.js	GIF export
 
+---
 
 ### 📁 Project Structure
 mr-studio/
