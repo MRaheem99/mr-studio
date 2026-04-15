@@ -259,6 +259,7 @@ python -m http.server 8000
 ---
 
 ### 🛠️ Technology Stack
+
 Technology	Purpose
 HTML5 Canvas	Rendering engine
 Vanilla JavaScript	Core logic (no frameworks)
@@ -271,6 +272,7 @@ gif.js	GIF export
 ---
 
 ### 📁 Project Structure
+
 mr-studio/
 ├── index.html              # Main entry point
 ├── css/
@@ -297,6 +299,7 @@ mr-studio/
 
 
 ### 🎯 Use Cases
+
 Motion Graphics - Create animated logos and titles
 
 Explainers - Animated whiteboard-style videos
@@ -311,6 +314,7 @@ Educational - Teaching animation principles
 
 
 ### 🔧 Browser Support
+
 Browser	Version
 Chrome	90+
 Firefox	88+
@@ -319,6 +323,7 @@ Edge	90+
 
 
 ### 🤝 Contributing
+
 Contributions are welcome! Please feel free to submit a Pull Request.
 
 Fork the repository
@@ -345,10 +350,12 @@ Test in multiple browsers
 
 
 ### 📝 License
+
 Distributed under the MIT License. See LICENSE file for more information.
 
 
 ### 🙏 Acknowledgments
+
 Font Awesome - Icons
 
 gif.js - GIF export
@@ -359,12 +366,14 @@ Google Fonts - Typography
 
 
 ### 📧 Contact
+
 mraheem764@gmail.com
 
 Project Link: https://github.com/MRaheem99/mr-studio
 
 
 ### ⭐ Show Your Support
+
 If you found this project helpful, please give it a star on GitHub!
 
 https://img.shields.io/github/stars/MRaheem99/mr-studio
