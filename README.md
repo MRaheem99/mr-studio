@@ -103,17 +103,17 @@ Whether you are creating explainer videos, animated intros, or full-length **You
 
 ## 🚀 Quick Start for YouTubers
 
-### Installation (Takes 30 Seconds!)
+## Installation (Takes 30 Seconds!)
 
 ```bash
-## Clone the repository
+# Clone the repository
 git clone https://github.com/MRaheem99/mr-studio.git
 
-## Navigate to folder
+# Navigate to folder
 cd mr-studio
 
-## Open index.html in your browser
-## That is it! No installation needed!
+# Open index.html in your browser
+# That is it! No installation needed!
 ---
 
 ## 📖 About
