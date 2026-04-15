@@ -264,6 +264,8 @@ gif.js	GIF export
 
 ### 📁 Project Structure
 
+```
+
 mr-studio/
 ├── index.html              # Main entry point
 ├── css/
@@ -288,6 +290,7 @@ mr-studio/
 │   └── icons/              # Shape icons
 └── README.md
 
+```
 
 ### 🎯 Use Cases
 
