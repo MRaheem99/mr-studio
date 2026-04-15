@@ -209,16 +209,11 @@ Whether you are a professional animator, YouTuber, creating animation on YouTube
 
 ```bash
 
-# Clone the repository
 git clone https://github.com/MRaheem99/mr-studio.git
-
-# Navigate to project folder
 cd mr-studio
 
-# Open index.html in your browser
-# Or use a local server
-python -m http.server 8000
-# Then visit http://localhost:8000
+👉 Open index.html in your browser
+(No installation required)
 
 ```
 
@@ -234,7 +229,7 @@ python -m http.server 8000
 
 **Play animation** - Press Space to watch your animation
 
-# Drawing with Brushes
+### Drawing with Brushes
 
 **Select Brush** - Press B or click the Brush button
 
@@ -246,7 +241,7 @@ python -m http.server 8000
 
 **Finish** - Click "Finish Drawing" to convert to shape
 
-# Working with Groups
+### Working with Groups
 
 **Select multiple objects** - Ctrl+Click or marquee selection
 
@@ -255,8 +250,6 @@ python -m http.server 8000
 **Transform group** - Use handles to transform entire group
 
 **Ungroup** - Select group and press Ctrl+Shift+G
-
----
 
 ### 🛠️ Technology Stack
 
@@ -268,8 +261,6 @@ Canvas API	Drawing and transformations
 MediaRecorder API	Video export
 JSZip	PNG sequence export
 gif.js	GIF export
-
----
 
 ### 📁 Project Structure
 
