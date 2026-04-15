@@ -24,7 +24,9 @@
 
 **MR Studio** is a **powerful animation software** built with **JavaScript** that runs entirely in your browser. It's a **lightweight**, **web-based 2D animation software** designed specifically for **YouTubers**, **animation channels**, and content creators who need to create stunning **YouTube videos** without expensive software.
 
-Whether you are creating explainer videos, animated intros, or full-length **YouTube videos**, MR Studio provides professional-grade tools in a lightweight package that runs on any device with a browser.
+MR Studio is a powerful free web-based javascript animation software, browser-based animation tool that combines vector drawing, keyframe animation, and professional export features. Create stunning animations, create cartoon animations, create animation videos for Youtube channel, draw freehand with multiple brush types, group objects, add keyframes with easing, and export to video or GIF - all without installing any software.
+
+Whether you are a professional animator, YouTuber, creating animation on YouTube channel, cartoon animator, motion graphics designer, or hobbyist, MR Studio provides the professional-grade tools you need to bring your ideas to life.
 
 ### 🎯 Perfect for:
 - ✅ **YouTubers** creating animated content
@@ -101,11 +103,10 @@ Whether you are creating explainer videos, animated intros, or full-length **You
 
 ---
 
-## 🚀 Quick Start for YouTubers
-
-# Installation (Takes 30 Seconds!)
+## Installation (Takes 30 Seconds!)
 
 ```bash
+
 # Clone the repository
 git clone https://github.com/MRaheem99/mr-studio.git
 
@@ -114,63 +115,8 @@ cd mr-studio
 
 # Open index.html in your browser
 # That is it! No installation needed!
----
 
-## 📖 About
-
-MR Studio is a powerful free web-based javascript animation software, browser-based animation tool that combines vector drawing, keyframe animation, and professional export features. Create stunning animations, create cartoon animations, create animation videos for Youtube channel, draw freehand with multiple brush types, group objects, add keyframes with easing, and export to video or GIF - all without installing any software.
-
-Whether you are a professional animator, Youtuber, creating animation on YouTube channel, motion graphics designer, or hobbyist, MR Studio provides the tools you need to bring your ideas to life.
-
----
-
-## ✨ Features
-
-### 🎯 Selection & Transformation
-- **Multi-Selection** - Select multiple objects with Shift/Ctrl+Click
-- **Marquee Selection** - Drag to select multiple objects
-- **Grouping** - Group objects together and transform as one
-- **Transform Handles** - Move, scale, rotate, skew with intuitive handles
-- **Pivot Point** - Change rotation center for advanced animations
-
-### ✏️ Drawing Tools
-- **9 Brush Types** - Solid, Tapered, Dotted, Dashed, Wavy, Zigzag, Glow, Gradient, Texture
-- **Stroke Stabilization** - Smooth out shaky hand movements
-- **Stroke Hardness** - Control edge softness from hard to soft
-- **Eraser Tool** - Erase portions of drawings
-- **Fill Bucket** - Fill closed shapes with color
-- **Path Editing** - Edit bezier curves with control handles
-
-### 🎬 Animation System
-- **Keyframe Animation** - Add keyframes on timeline
-- **12 Easing Types** - Linear, Ease In/Out, Bounce, Elastic, and more
-- **Smooth Interpolation** - Automatic frame interpolation
-- **Group Animation** - Animate entire groups as one unit
-- **Real-time Preview** - See animation as you create it
-
-### 🖌️ Shape Library
-- **Basic Shapes** - Square, Circle, Triangle, Line
-- **Polygons** - Pentagon, Star, Arrow, Custom Polygon
-- **Paths** - Bezier curves and paths
-- **Text** - Add and style text
-- **Images** - Import and manipulate images
-- **Free Drawing** - Convert drawings to vector shapes
-
-### 🎨 Styling Options
-- **Fill Colors** - Solid colors and gradients
-- **Border Controls** - Width, color, offset, blur
-- **Shadow Effects** - Blur, offset, opacity
-- **Opacity** - Transparency control
-- **Image Filters** - Brightness, contrast, saturation, blur
-
-### 📦 Export Formats
-
-| Format | Description |
-|--------|-------------|
-| **WebM** | High-quality video with transparency support |
-| **GIF** | Animated GIF for easy sharing |
-| **PNG Sequence** | Export each frame as PNG (ZIP archive) |
-| **JSON** | Save/load project files for later editing |
+```
 
 ---
 
