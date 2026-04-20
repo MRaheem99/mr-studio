@@ -14,6 +14,10 @@
 <body>
 
     <div class="app-container">
+        <!-- Sidebar Toggle Button for Mobile -->
+        <button class="sidebar-toggle" id="sidebarToggle">
+            <i class="fa-solid fa-bars"></i>
+        </button>
         <section class="animation-section">
             <div id="animContainer">
                 <canvas id="mainCanvas"></canvas>
@@ -51,140 +55,143 @@
         </section>
 
         <section class="operations-section">
-            <div class="menu-group" style="position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;background:#333;padding:5px;">
+            <div style="position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;background:#333;padding:5px;">
                 <div style="display:flex;gap:6px;"><img src="./img/mrstudiologo_128.png" style="width:28px;height:28px;"/> <h1 style="font-size:18px;">MR STUDIO</h1></div>
                 <div>
                     <button class="icon-btn" id="btnHelp" title="Help" style="margin-bottom:0;"><i class="fa-solid fa-circle-question"></i></button>
                     <button class="icon-btn" id="btnAbout" title="About" style="margin-bottom:0;"><i class="fa-solid fa-info-circle"></i></button>
                 </div>
             </div>
-            <h2><i class="fa-solid fa-sliders"></i> Controls</h2>
 
-            <div class="menu-group">
-                <span class="form-label">View Mode</span>
-                <button class="icon-btn mode-active" id="btnModeObject" title="Object Mode"><i class="fas fa-hand-point-up"></i></button>
-                <button class="icon-btn" id="btnModeCanvas" title="Canvas Mode"><i class="fa-solid fa-hand-paper"></i></button>
-                <button class="icon-btn" id="btnToggleHandles" title="Toggle Handles"><i class="fa-solid fa-eye"></i></button>
-            </div>
-            <div class="menu-group">
-                <span class="form-label">Scene & Tools</span>
-                <button class="icon-btn" id="btnSelectionTool" title="Selection Tool (V)"><i class="fa-solid fa-arrow-pointer"></i></button>
-                <button class="icon-btn" id="btnObjectsList" title="Objects List"><i class="fa-solid fa-list"></i></button>
-                <button class="icon-btn" id="btnSettings" title="Project Settings"><i class="fa-solid fa-gear"></i></button>
-                <button class="icon-btn" id="btnAddShape" title="Add Shape"><i class="fa-solid fa-shapes"></i></button>
-                <button class="icon-btn" id="btnAddText" title="Add Text"><i class="fa-solid fa-font"></i></button>
-                <button class="icon-btn" id="btnAddImage" title="Import Image"><i class="fa-regular fa-image"></i></button>
-                <button class="icon-btn" id="btnLoadPreset" title="Load Shape Preset"><i class="fa-solid fa-folder-open"></i></button>
-                <button class="icon-btn" id="btnShapeLibrary" title="Shape Library"><i class="fa-solid fa-cubes"></i></button>
-            </div>
-            <div class="menu-group">
-                <span class="tool-label">Solo Mode</span>
-                <div id="soloModeStatus" style="font-size: 0.7rem; color: var(--accent); margin-top: 5px; display: none;">
-                    <i class="fa-solid fa-eye"></i> Solo: <span id="soloObjectName"></span>
-                    <button class="icon-btn" id="exitSoloMode" style="margin-left: 5px; padding: 2px 5px;">Exit</button>
+            <div class="pad-10">
+                <h2><i class="fa-solid fa-sliders"></i> Controls</h2>
+                <div class="menu-group">
+                    <span class="form-label">View Mode</span>
+                    <button class="icon-btn mode-active" id="btnModeObject" title="Object Mode"><i class="fas fa-hand-point-up"></i></button>
+                    <button class="icon-btn" id="btnModeCanvas" title="Canvas Mode"><i class="fa-solid fa-hand-paper"></i></button>
+                    <button class="icon-btn" id="btnToggleHandles" title="Toggle Handles"><i class="fa-solid fa-eye"></i></button>
                 </div>
-            </div>
-            <div class="menu-group">
-                <span class="form-label">Group Tools</span>
-                <button class="icon-btn" id="btnGroup" title="Group Selected"><i class="fa-solid fa-layer-group"></i></button>
-                <button class="icon-btn" id="btnUngroup" title="Ungroup"><i class="fa-solid fa-object-ungroup"></i></button>
-            </div>
-            
-            <div class="menu-group">
-                <span class="form-label">Drawing Tools</span>
-                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-                    <button class="icon-btn" id="btnPencil" title="Pencil Tool"><i class="fa-solid fa-pencil"></i></button>
-                    <button class="icon-btn" id="btnBrush" title="Brush Tool"><i class="fa-solid fa-paintbrush"></i></button>
-                    <button class="icon-btn" id="btnEraser" title="Eraser Tool"><i class="fa-solid fa-eraser"></i></button>
-                    <button class="icon-btn" id="btnFinishDrawing" title="Finish Drawing"><i class="fa-solid fa-check"></i></button>
-                    <button class="icon-btn" id="btnCancelDrawing" title="Cancel Drawing"><i class="fa-solid fa-xmark"></i></button>
-                    <button class="icon-btn" id="btnFillBucket" title="Fill Bucket Tool"><i class="fa-solid fa-fill-drip"></i></button>
+                <div class="menu-group">
+                    <span class="form-label">Scene & Tools</span>
+                    <button class="icon-btn" id="btnSelectionTool" title="Selection Tool (V)"><i class="fa-solid fa-arrow-pointer"></i></button>
+                    <button class="icon-btn" id="btnObjectsList" title="Objects List"><i class="fa-solid fa-list"></i></button>
+                    <button class="icon-btn" id="btnSettings" title="Project Settings"><i class="fa-solid fa-gear"></i></button>
+                    <button class="icon-btn" id="btnAddShape" title="Add Shape"><i class="fa-solid fa-shapes"></i></button>
+                    <button class="icon-btn" id="btnAddText" title="Add Text"><i class="fa-solid fa-font"></i></button>
+                    <button class="icon-btn" id="btnAddImage" title="Import Image"><i class="fa-regular fa-image"></i></button>
+                    <button class="icon-btn" id="btnLoadPreset" title="Load Shape Preset"><i class="fa-solid fa-folder-open"></i></button>
+                    <button class="icon-btn" id="btnShapeLibrary" title="Shape Library"><i class="fa-solid fa-cubes"></i></button>
                 </div>
-                <div class="form-group" id="brushTypeSelector" style="display:none;">
-                    <label class="tool-label">Brush Type</label>
-                    <div class="select-wrapper">
-                        <select id="brushTypeSelect">
-                            <optgroup label="Basic">
-                                <option value="solid">Solid Brush</option>
-                                <option value="tapered">Tapered Brush</option>
-                            </optgroup>
-                            <optgroup label="Pattern">
-                                <option value="dotted">Dotted Brush</option>
-                                <option value="dashed">Dashed Brush</option>
-                            </optgroup>
-                            <optgroup label="Effect">
-                                <option value="wavy">Wavy Brush</option>
-                                <option value="zigzag">Zigzag Brush</option>
-                                <option value="glow">Glow Brush</option>
-                                <option value="gradient">Gradient Brush</option>
-                                <option value="texture">Texture Brush</option>
-                            </optgroup>
-                        </select>
+                <div class="menu-group">
+                    <span class="tool-label">Solo Mode</span>
+                    <div id="soloModeStatus" style="font-size: 0.7rem; color: var(--accent); margin-top: 5px; display: none;">
+                        <i class="fa-solid fa-eye"></i> Solo: <span id="soloObjectName"></span>
+                        <button class="icon-btn" id="exitSoloMode" style="margin-left: 5px; padding: 2px 5px;">Exit</button>
                     </div>
                 </div>
                 
-                <div class="form-group" id="brushSpacingContainer" style="display:none;">
-                    <label class="tool-label">Brush Spacing</label>
-                    <div id="brushSpacingSlider"></div>
-                </div>
-                <div class="form-group" id="glowIntensityContainer" style="display:none;">
-                    <label class="tool-label">Glow Intensity</label>
-                    <div id="glowIntensitySlider"></div>
+                <div class="menu-group">
+                    <span class="form-label">Group Tools</span>
+                    <button class="icon-btn" id="btnGroup" title="Group Selected"><i class="fa-solid fa-layer-group"></i></button>
+                    <button class="icon-btn" id="btnUngroup" title="Ungroup"><i class="fa-solid fa-object-ungroup"></i></button>
                 </div>
                 
-                <div class="form-group" id="taperSettingsContainer" style="display:none;">
-                    <label class="tool-label">Taper Settings</label>
-                    <div class="tool-group">
-                        <label class="tool-label">Start Width</label>
-                        <div id="minTaperWidthSlider"></div>
+                <div class="menu-group">
+                    <span class="form-label">Drawing Tools</span>
+                    <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                        <button class="icon-btn" id="btnPencil" title="Pencil Tool"><i class="fa-solid fa-pencil"></i></button>
+                        <button class="icon-btn" id="btnBrush" title="Brush Tool"><i class="fa-solid fa-paintbrush"></i></button>
+                        <button class="icon-btn" id="btnEraser" title="Eraser Tool"><i class="fa-solid fa-eraser"></i></button>
+                        <button class="icon-btn" id="btnFinishDrawing" title="Finish Drawing"><i class="fa-solid fa-check"></i></button>
+                        <button class="icon-btn" id="btnCancelDrawing" title="Cancel Drawing"><i class="fa-solid fa-xmark"></i></button>
+                        <button class="icon-btn" id="btnFillBucket" title="Fill Bucket Tool"><i class="fa-solid fa-fill-drip"></i></button>
                     </div>
-                    <div class="tool-group">
-                        <label class="form-label">End Width</label>
-                        <div id="maxTaperWidthSlider"></div>
+                    <div class="form-group" id="brushTypeSelector" style="display:none;">
+                        <label class="tool-label">Brush Type</label>
+                        <div class="select-wrapper">
+                            <select id="brushTypeSelect">
+                                <optgroup label="Basic">
+                                    <option value="solid">Solid Brush</option>
+                                    <option value="tapered">Tapered Brush</option>
+                                </optgroup>
+                                <optgroup label="Pattern">
+                                    <option value="dotted">Dotted Brush</option>
+                                    <option value="dashed">Dashed Brush</option>
+                                </optgroup>
+                                <optgroup label="Effect">
+                                    <option value="wavy">Wavy Brush</option>
+                                    <option value="zigzag">Zigzag Brush</option>
+                                    <option value="glow">Glow Brush</option>
+                                    <option value="gradient">Gradient Brush</option>
+                                    <option value="texture">Texture Brush</option>
+                                </optgroup>
+                            </select>
+                        </div>
                     </div>
-                </div>
-
-                <div class="form-group" style="display: flex; gap: 15px; margin-bottom: 10px;">
-                    <div class="">
-                        <label class="tool-label">Stroke Color</label>
-                        <input type="color" id="strokeColorPicker" value="#0066ff">
-                    </div>
-                    <div class="">
-                        <label class="tool-label">Fill Color</label>
-                        <input type="color" id="fillColorPicker" value="#ff0066">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="tool-label">Stroke Width</label>
-                    <div id="strokeWidthContainer"></div>
-                </div>
-                <div class="form-group">
-                    <label class="tool-label">Stroke Opacity</label>
-                    <div id="strokeOpacityContainer"></div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Stroke Hardness</label>
-                    <div id="strokeHardnessContainer"></div>
-                </div>
-                <div class="form-group" id="eraserSizeContainer">
-                    <label class="tool-label">Eraser Size</label>
-                    <div id="eraserSizeSlider"></div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="tool-label">Stroke Stabilization</label>
-                    <div id="stabilizationSliderContainer"></div>
                     
-                    <div class="form-row">
-                        <label class="tool-label" style="display: inline-block; margin-right: 10px;">Smoothing:</label>
-                        <select id="smoothingSelect" style="flex:1;">
-                            <option value="weighted">Weighted Average</option>
-                            <option value="simple">Simple Average</option>
-                            <option value="chaikin">Chaikin Smooth</option>
-                            <option value="rdp">RDP Simplify</option>
-                        </select>
+                    <div class="form-group" id="brushSpacingContainer" style="display:none;">
+                        <label class="tool-label">Brush Spacing</label>
+                        <div id="brushSpacingSlider"></div>
                     </div>
-                    <small style="font-size: 0.7rem; color: #888;">Higher values = smoother but more delay</small>
+                    <div class="form-group" id="glowIntensityContainer" style="display:none;">
+                        <label class="tool-label">Glow Intensity</label>
+                        <div id="glowIntensitySlider"></div>
+                    </div>
+                    
+                    <div class="form-group" id="taperSettingsContainer" style="display:none;">
+                        <label class="tool-label">Taper Settings</label>
+                        <div class="tool-group">
+                            <label class="tool-label">Start Width</label>
+                            <div id="minTaperWidthSlider"></div>
+                        </div>
+                        <div class="tool-group">
+                            <label class="form-label">End Width</label>
+                            <div id="maxTaperWidthSlider"></div>
+                        </div>
+                    </div>
+    
+                    <div class="form-group" style="display: flex; gap: 15px; margin-bottom: 10px;">
+                        <div class="">
+                            <label class="tool-label">Stroke Color</label>
+                            <input type="color" id="strokeColorPicker" value="#0066ff">
+                        </div>
+                        <div class="">
+                            <label class="tool-label">Fill Color</label>
+                            <input type="color" id="fillColorPicker" value="#ff0066">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="tool-label">Stroke Width</label>
+                        <div id="strokeWidthContainer"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="tool-label">Stroke Opacity</label>
+                        <div id="strokeOpacityContainer"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Stroke Hardness</label>
+                        <div id="strokeHardnessContainer"></div>
+                    </div>
+                    <div class="form-group" id="eraserSizeContainer">
+                        <label class="tool-label">Eraser Size</label>
+                        <div id="eraserSizeSlider"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="tool-label">Stroke Stabilization</label>
+                        <div id="stabilizationSliderContainer"></div>
+                        
+                        <div class="form-row">
+                            <label class="tool-label" style="display: inline-block; margin-right: 10px;">Smoothing:</label>
+                            <select id="smoothingSelect" style="flex:1;">
+                                <option value="weighted">Weighted Average</option>
+                                <option value="simple">Simple Average</option>
+                                <option value="chaikin">Chaikin Smooth</option>
+                                <option value="rdp">RDP Simplify</option>
+                            </select>
+                        </div>
+                        <small style="font-size: 0.7rem; color: #888;">Higher values = smoother but more delay</small>
+                    </div>
                 </div>
             </div>
         </section>
@@ -688,7 +695,6 @@
 
     <script src="./js/globals.js"></script>
     <script src="./js/tooltip.js"></script>
-    <script src="./js/mr-dialog.js"></script>
     <script src="./js/rn-slider.js"></script>
     <script src="./js/sliderAdapter.js"></script>
     <script src="./js/shape-manager.js"></script>
