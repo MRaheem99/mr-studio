@@ -1,4 +1,3 @@
-
 let shapeLibrary = [];
 async function initShapeLibrary() {
     try {
