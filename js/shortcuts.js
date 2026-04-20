@@ -326,6 +326,14 @@ document.addEventListener('keydown', (e) => {
         shapesToRotate.forEach(shape => {
             const delta = (e.key === 'ArrowRight' ? rotationStep : -rotationStep) * Math.PI / 180;
             
+            if (isKinematicMode && kinematicChain.includes(selectedShape)) {
+                if (typeof rotateWithKinematicChain === 'function') {
+                    rotateWithKinematicChain(selectedShape, delta);
+                }
+            } else {
+                selectedShape.rotation += delta;
+            }
+            
             if (shape.pivotX !== 0 || shape.pivotY !== 0) {
                 const pivotWorld = shape.getPivotWorldPosition();
                 
@@ -611,6 +619,32 @@ document.addEventListener('keydown', (e) => {
                     }
                 };
                 window.undoManager.execute(flipCommand);
+            }
+        }
+        return;
+    }
+    if (isCtrl && e.key === 'l' && !isShift) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (selectedShape) {
+            selectedShape.locked = !selectedShape.locked;
+            showToast(selectedShape.locked ? "Object Locked" : "Object Unlocked", 'S');
+            drawAll();
+            if (window.undoManager) {
+                // Add to undo manager if needed
+            }
+        }
+        return;
+    }
+    if (isCtrl && e.key === 'h' && !isShift) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (selectedShape) {
+            selectedShape.visible = selectedShape.visible === false ? true : false;
+            showToast(selectedShape.visible === false ? "Object Hidden" : "Object Visible", 'S');
+            drawAll();
+            if (window.undoManager) {
+                // Add to undo manager if needed
             }
         }
         return;
@@ -910,7 +944,7 @@ document.addEventListener('keydown', (e) => {
         }
         return;
     }
-    // B - Add bookmark at current time
+    
     if (e.key === 'b' && !isCtrl && isAlt) {
         e.preventDefault();
         e.stopPropagation();
@@ -918,7 +952,6 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // Ctrl + Shift + L - Toggle Loop
     if (isCtrl && isShift && e.key === 'l') {
         e.preventDefault();
         e.stopPropagation();
