@@ -420,7 +420,25 @@ class ShapeManager {
                 }
             });
         });
+        window.animationState.animationDuration = maxTime + 60;
+        window.animationState.duration = maxTime; // + (1 / window.animationState.fps) + 60;
+        if (this.updateDuration) this.updateDuration(window.animationState.duration);
+        this.shapes.forEach(shape => this.buildTrack(shape));
+        updateTimelineSize();
+        updateTimelineUI();
+    }
+    
+    recalculateAnimationDuration() {
+        let maxTime = 0;
+        this.shapes.forEach(shape => {
+            shape.keyframes.forEach(kf => {
+                if (kf.time > maxTime) {
+                    maxTime = kf.time;
+                }
+            });
+        });
         window.animationState.duration = maxTime + (1 / window.animationState.fps);
+        window.animationState.animationDuration = maxTime + 60;
         if (this.updateDuration) this.updateDuration(window.animationState.duration);
         this.shapes.forEach(shape => this.buildTrack(shape));
         updateTimelineSize();
@@ -502,6 +520,44 @@ class ShapeManager {
     }
     applyState(shape, state) {
         if (!shape || !state) return;
+        
+        const colorProps = ['color', 'borderColor', 'shadowColor', 'fillColor', 'strokeColor'];
+    
+        for (const key in state) {
+            if (colorProps.includes(key)) {
+                shape[key] = state[key];
+            }
+            else if (key === 'pivotWorldX' || key === 'pivotWorldY') {
+                // Skip these, they are calculated
+                continue;
+            }
+            else if (key === 'points') {
+                // Handle points array safely
+                if (state.points && Array.isArray(state.points)) {
+                    shape.points = state.points.map(p => ({
+                        ...p,
+                        in: p.in ? { ...p.in } : { x: 0, y: 0 },
+                        out: p.out ? { ...p.out } : { x: 0, y: 0 }
+                    }));
+                }
+            }
+            else if (typeof state[key] === 'object' && state[key] !== null && !Array.isArray(state[key])) {
+                // Handle nested objects
+                if (shape[key]) {
+                    Object.assign(shape[key], state[key]);
+                } else {
+                    shape[key] = JSON.parse(JSON.stringify(state[key]));
+                }
+            }
+            else if (Array.isArray(state[key])) {
+                // Handle arrays (like strokesData)
+                shape[key] = JSON.parse(JSON.stringify(state[key]));
+            }
+            else {
+                shape[key] = state[key];
+            }
+        }
+    
         if (shape.type === 'group') {
             if (state.x !== undefined) shape.x = state.x;
             if (state.y !== undefined) shape.y = state.y;
