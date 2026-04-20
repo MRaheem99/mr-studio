@@ -113,7 +113,7 @@ function interpolateAndDraw() {
     drawAll();
 }
 
-function lerpState(start, end, t) {
+function lerpState_L(start, end, t) {
     const state = {};
     for (const key in start) {
         if (typeof start[key] === 'number' && typeof end[key] === 'number') {
@@ -125,6 +125,74 @@ function lerpState(start, end, t) {
     return state;
 }
 
+function lerpState(start, end, t) {
+    const state = {};
+    
+    function interpolateColor(color1, color2, t) {
+        if (!color1 || !color2) return color2 || color1;
+        
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            if (result) {
+                return {
+                    r: parseInt(result[1], 16),
+                    g: parseInt(result[2], 16),
+                    b: parseInt(result[3], 16)
+                };
+            }
+            return null;
+        }
+        
+        const rgb1 = hexToRgb(color1);
+        const rgb2 = hexToRgb(color2);
+        
+        if (rgb1 && rgb2) {
+            const r = Math.round(rgb1.r + (rgb2.r - rgb1.r) * t);
+            const g = Math.round(rgb1.g + (rgb2.g - rgb1.g) * t);
+            const b = Math.round(rgb1.b + (rgb2.b - rgb1.b) * t);
+            return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+        }
+        
+        return color2 || color1;
+    }
+    
+    for (const key in start) {
+        const startVal = start[key];
+        const endVal = end[key];
+        
+        if (startVal === undefined) {
+            state[key] = endVal;
+        }
+        else if (endVal === undefined) {
+            state[key] = startVal;
+        }
+        else if (key === 'color' || key === 'borderColor' || key === 'shadowColor') {
+            state[key] = interpolateColor(startVal, endVal, t);
+        }
+        else if (typeof startVal === 'number' && typeof endVal === 'number') {
+            state[key] = startVal + (endVal - startVal) * t;
+        }
+        else if (Array.isArray(startVal) || Array.isArray(endVal)) {
+            state[key] = endVal !== undefined ? JSON.parse(JSON.stringify(endVal)) : JSON.parse(JSON.stringify(startVal));
+        }
+        else if (typeof startVal === 'object' && typeof endVal === 'object' && startVal !== null && endVal !== null) {
+            state[key] = {};
+            for (const subKey in startVal) {
+                if (typeof startVal[subKey] === 'number' && typeof endVal[subKey] === 'number') {
+                    state[key][subKey] = startVal[subKey] + (endVal[subKey] - startVal[subKey]) * t;
+                } else {
+                    state[key][subKey] = endVal[subKey] !== undefined ? endVal[subKey] : startVal[subKey];
+                }
+            }
+        }
+        else {
+            state[key] = endVal !== undefined ? endVal : startVal;
+        }
+    }
+    
+    return state;
+}
+
 function drawAll() {
     const s = window.animationState.settings;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -133,6 +201,7 @@ function drawAll() {
         ctx.fillStyle = s.bgColor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
+    
     shapes.forEach(shape => shape.draw(ctx));
     rebuildTracks();
     updateEditModeIndicator();
@@ -230,10 +299,11 @@ function endMarquee() {
 function onStart(e) {
     if (isDrawing) return;
     if (e.ctrlKey) {
-        viewport.mode = 'canvas';
+        //viewport.mode = 'canvas';
     } else {
-        viewport.mode = 'object';
+        //viewport.mode = 'object';
     }
+    
     let clickedShape = null;
     const pos = getPos(e);
     for (let i = shapes.length - 1; i >= 0; i--) {
@@ -242,6 +312,7 @@ function onStart(e) {
             break;
         }
     }
+    
     if (soloEditMode && soloEditObject && clickedShape && clickedShape !== soloEditObject) {
         e.preventDefault();
         return;
@@ -328,23 +399,7 @@ function onStart(e) {
         return;
     }
     if (viewport.mode === 'canvas') {
-        if (e.touches && e.touches.length === 2) {
-            const rect = canvas.getBoundingClientRect();
-            const t1 = e.touches[0];
-            const t2 = e.touches[1];
-            const centerX = (t1.clientX + t2.clientX) / 2 - rect.left;
-            const centerY = (t1.clientY + t2.clientY) / 2 - rect.top;
-            const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
-            const prevScale = viewport.scale;
-            viewport.scale = Math.max(0.1, viewport.startScale + (dist - viewport.startDist) * 0.005);
-            const scaleChange = viewport.scale / prevScale;
-            viewport.pointX = centerX - (centerX - viewport.pointX) * scaleChange;
-            viewport.pointY = centerY - (centerY - viewport.pointY) * scaleChange;
-            updateCanvasTransform();
-            e.preventDefault();
-            return;
-        }
-        if (e.button === 0 || e.touches) {
+        if (e.button === 0) {
             viewport.panning = true;
             viewport.startX = (e.touches ? e.touches[0].clientX : e.clientX) - viewport.pointX;
             viewport.startY = (e.touches ? e.touches[0].clientY : e.clientY) - viewport.pointY;
@@ -618,7 +673,20 @@ function onStart(e) {
         }
     }
     if (clickedShape && !isEditingPoint) {
-        const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
+        const isMultiSelect = e.ctrlKey || e.metaKey;
+        
+        if (isMultiSelect && clickedShape.selected) {
+            clickedShape.selected = false;
+            const index = selectedShapes.indexOf(clickedShape);
+            if (index !== -1) selectedShapes.splice(index, 1);
+            
+            selectedShape = selectedShapes.length > 0 ? selectedShapes[selectedShapes.length - 1] : null;
+            if (shapeManager) shapeManager.setSelectedShape(selectedShape);
+            drawAll();
+            e.preventDefault();
+            return;
+        }
+        
         if (!isMultiSelect) {
             for (let shape of shapes) {
                 shape.selected = false;
@@ -626,6 +694,7 @@ function onStart(e) {
             selectedShapes = [];
             selectedShape = null;
         }
+        
         clickedShape.selected = true;
         selectedShape = clickedShape;
         isDragging = true;
@@ -633,32 +702,39 @@ function onStart(e) {
             x: pos.x - selectedShape.x,
             y: pos.y - selectedShape.y
         };
+        
         if (!selectedShapes.includes(clickedShape)) {
             selectedShapes.push(clickedShape);
         }
+        
         window.dragStartState = null;
         if (shapeManager) shapeManager.setSelectedShape(clickedShape);
         drawAll();
         e.preventDefault();
         return;
     }
+
     if (!clickedShape) {
-        function clearAllSelectionsRecursively(obj) {
-            obj.selected = false;
-            if (obj.type === 'group' && obj.children) {
-                obj.children.forEach(child => clearAllSelectionsRecursively(child));
+        const isMultiSelect = e.ctrlKey || e.metaKey;
+        
+        if (!isMultiSelect) {
+            function clearAllSelectionsRecursively(obj) {
+                obj.selected = false;
+                if (obj.type === 'group' && obj.children) {
+                    obj.children.forEach(child => clearAllSelectionsRecursively(child));
+                }
             }
+            for (let shape of shapes) {
+                clearAllSelectionsRecursively(shape);
+            }
+            selectedShapes = [];
+            selectedShape = null;
+            if (shapeManager) shapeManager.setSelectedShape(null);
+            if (typeof updateSelectionDisplay === 'function') {
+                updateSelectionDisplay();
+            }
+            drawAll();
         }
-        for (let shape of shapes) {
-            clearAllSelectionsRecursively(shape);
-        }
-        selectedShapes = [];
-        selectedShape = null;
-        if (shapeManager) shapeManager.setSelectedShape(null);
-        if (typeof updateSelectionDisplay === 'function') {
-            updateSelectionDisplay();
-        }
-        drawAll();
         e.preventDefault();
         return;
     }
@@ -667,28 +743,13 @@ function onStart(e) {
 function onMove(e) {
     if (isDrawing) return;
     if (soloEditMode && selectedShape !== soloEditObject) return;
+    
     if (isMarqueeActive) {
         updateMarquee(e.clientX, e.clientY);
         e.preventDefault();
         return;
     }
     if (viewport.mode === 'canvas') {
-        if (e.touches && e.touches.length === 2) {
-            const rect = canvas.getBoundingClientRect();
-            const t1 = e.touches[0];
-            const t2 = e.touches[1];
-            const centerX = (t1.clientX + t2.clientX) / 2 - rect.left;
-            const centerY = (t1.clientY + t2.clientY) / 2 - rect.top;
-            const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
-            const prevScale = viewport.scale;
-            viewport.scale = Math.max(0.1, viewport.startScale + (dist - viewport.startDist) * 0.005);
-            const scaleChange = viewport.scale / prevScale;
-            viewport.pointX = centerX - (centerX - viewport.pointX) * scaleChange;
-            viewport.pointY = centerY - (centerY - viewport.pointY) * scaleChange;
-            updateCanvasTransform();
-            e.preventDefault();
-            return;
-        }
         if (viewport.panning) {
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
@@ -869,8 +930,20 @@ function onMove(e) {
             window.undoManager.startBatch();
             window.dragStartState = captureObjectState(selectedShape);
         }
-        selectedShape.x = pos.x - dragOffset.x;
-        selectedShape.y = pos.y - dragOffset.y;
+        
+        const deltaX = pos.x - dragOffset.x - selectedShape.x;
+        const deltaY = pos.y - dragOffset.y - selectedShape.y;
+        
+        for (let shape of selectedShapes) {
+            shape.x += deltaX;
+            shape.y += deltaY;
+        }
+        
+        dragOffset = {
+            x: pos.x - selectedShape.x,
+            y: pos.y - selectedShape.y
+        };
+        
         drawAll();
         e.preventDefault();
     } else if (activeHandle === 'skewX') {
@@ -895,6 +968,7 @@ function onEnd(e) {
         e.preventDefault();
         return;
     }
+
     viewport.panning = false;
     const isStringHandle = typeof activeHandle === 'string';
     const isObjectHandle = typeof activeHandle === 'object' && activeHandle !== null;
