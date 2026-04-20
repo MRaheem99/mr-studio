@@ -296,7 +296,7 @@ class Shape {
             for (let i = 0; i < this.strokesData.length; i++) {
                 const stroke = this.strokesData[i];
                 const points = stroke.points;
-                const fillColorValue = this._tempFillColors ? .[i] || this.strokeFillColors ? .[i];
+                const fillColorValue = this._tempFillColors ?.[i] || this.strokeFillColors ? .[i];
                 if (fillColorValue && points.length >= 3) {
                     const first = points[0];
                     const last = points[points.length - 1];
