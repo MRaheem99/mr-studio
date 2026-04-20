@@ -1,113 +1,164 @@
-    btnModeObject.addEventListener('click', () => setMode('object'));
-    btnModeCanvas.addEventListener('click', () => setMode('canvas'));
-
     function drawTimelineRuler() {
         const ctx = timelineRuler.getContext("2d");
-        const duration = window.animationState.duration + 60 || 60;
-        const totalWidth = Math.max(duration * pixelsPerSecond + 200, timelineTracksWrapper.clientWidth + 100);
-
-        timelineRuler.width = totalWidth;
-        timelineRuler.style.width = totalWidth + "px";
+        const duration = window.animationState.animationDuration || 60;
+        const totalWidth = duration * pixelsPerSecond + 200;
+        
+        const visibleWidth = timelineTracksWrapper.clientWidth;
+        timelineRuler.width = visibleWidth;
+        timelineRuler.style.width = visibleWidth + "px";
         timelineRuler.height = 39;
-        ctx.clearRect(0, 0, totalWidth, 39);
-
+        ctx.clearRect(0, 0, visibleWidth, 39);
+        
+        const scrollLeft = timelineTracksWrapper.scrollLeft;
+        const startX = scrollLeft;
+        const endX = scrollLeft + visibleWidth;
         const bottom = timelineRuler.height;
-
-        if (loopEnabled) {
-            const startX = loopStartTime * pixelsPerSecond;
-            const endX = loopEndTime * pixelsPerSecond;
-
-            ctx.fillStyle = "rgba(0, 212, 255, 0.2)";
-            ctx.fillRect(startX, 0, endX - startX, bottom);
-
-            ctx.beginPath();
-            ctx.moveTo(startX, 0);
-            ctx.lineTo(startX, bottom);
-            ctx.strokeStyle = "#00d4ff";
-            ctx.lineWidth = 3;
-            ctx.stroke();
-
-            ctx.beginPath();
-            ctx.moveTo(endX, 0);
-            ctx.lineTo(endX, bottom);
-            ctx.strokeStyle = "#ff9f43";
-            ctx.lineWidth = 3;
-            ctx.stroke();
-
-            ctx.fillStyle = "#00d4ff";
-            ctx.font = "10px sans-serif";
-            ctx.fillText("Loop Start", startX + 4, bottom - 5);
-            ctx.fillStyle = "#ff9f43";
-            ctx.fillText("Loop End", endX + 4, bottom - 5);
+        
+        if (pixelsPerSecond >= 200) {
+            subdivisions = 20;
+        } else if (pixelsPerSecond >= 150) {
+            subdivisions = 15;
+        } else if (pixelsPerSecond >= 100) {
+            subdivisions = 10;
+        } else if (pixelsPerSecond >= 50) {
+            subdivisions = 5;
+        } else {
+            subdivisions = 2;
         }
-
+        
+        if (loopEnabled) {
+            const loopStartX = loopStartTime * pixelsPerSecond;
+            const loopEndX = loopEndTime * pixelsPerSecond;
+            
+            const drawStartX = Math.max(0, loopStartX - startX);
+            const drawEndX = Math.min(visibleWidth, loopEndX - startX);
+            
+            if (drawStartX < drawEndX) {
+                ctx.fillStyle = "rgba(0, 212, 255, 0.2)";
+                ctx.fillRect(drawStartX, 0, drawEndX - drawStartX, bottom);
+                
+                if (loopStartX >= startX && loopStartX <= endX) {
+                    ctx.beginPath();
+                    ctx.moveTo(loopStartX - startX, 0);
+                    ctx.lineTo(loopStartX - startX, bottom);
+                    ctx.strokeStyle = "#00d4ff";
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                    ctx.fillStyle = "#00d4ff";
+                    ctx.fillText("Loop Start", loopStartX - startX + 4, bottom - 5);
+                }
+                
+                if (loopEndX >= startX && loopEndX <= endX) {
+                    ctx.beginPath();
+                    ctx.moveTo(loopEndX - startX, 0);
+                    ctx.lineTo(loopEndX - startX, bottom);
+                    ctx.strokeStyle = "#ff9f43";
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                    ctx.fillStyle = "#ff9f43";
+                    ctx.fillText("Loop End", loopEndX - startX + 4, bottom - 5);
+                }
+            }
+        }
+        
+        const startTime = startX / pixelsPerSecond;
+        const endTime = endX / pixelsPerSecond;
+        const startSecond = Math.floor(startTime);
+        const endSecond = Math.ceil(endTime) + 1;
+        
+        for(let s = startSecond; s <= endSecond; s++) {
+            const x = s * pixelsPerSecond;
+            const drawX = x - startX;
+            
+            if (drawX >= -120 && drawX <= visibleWidth + 120) {
+                ctx.strokeStyle = "#666";
+                ctx.beginPath();
+                ctx.moveTo(drawX, bottom);
+                ctx.lineTo(drawX, bottom - 20);
+                ctx.stroke();
+                ctx.fillStyle = "#666";
+                ctx.font = "10px sans-serif";
+                ctx.fillText(s + "s", drawX + 4, bottom - 22);
+                
+                for(let sub = 1; sub < subdivisions; sub++) {
+                    const subX = x + (sub * pixelsPerSecond / subdivisions);
+                    const subDrawX = subX - startX;
+                    if (subDrawX >= -10 && subDrawX <= visibleWidth + 10) {
+                        ctx.strokeStyle = "#666";
+                        ctx.beginPath();
+                        ctx.moveTo(subDrawX, bottom);
+                        ctx.lineTo(subDrawX, bottom - 10);
+                        ctx.stroke();
+                        
+                        if (pixelsPerSecond >= 300 && sub % 5 === 0) {
+                            ctx.fillStyle = "#666";
+                            ctx.font = "8px sans-serif";
+                            const subTime = (sub * (1 / subdivisions)).toFixed(1);
+                            ctx.fillText(subTime + "s", subDrawX + 2, bottom - 15);
+                        }
+                    }
+                }
+            }
+        }
+        
         bookmarks.forEach(bookmark => {
             const x = bookmark.time * pixelsPerSecond;
-
+            const drawX = x - startX;
+            if (drawX >= 0 && drawX <= visibleWidth) {
+                ctx.beginPath();
+                ctx.moveTo(drawX, 0);
+                ctx.lineTo(drawX, bottom);
+                ctx.strokeStyle = bookmark.isLoopStart ? "#00d4ff" : (bookmark.isLoopEnd ? "#ff9f43" : "#ff5ec4");
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(drawX, 5);
+                ctx.lineTo(drawX + 6, 12);
+                ctx.lineTo(drawX, 19);
+                ctx.lineTo(drawX - 6, 12);
+                ctx.closePath();
+                ctx.fillStyle = bookmark.isLoopStart ? "#00d4ff" : (bookmark.isLoopEnd ? "#ff9f43" : "#ff5ec4");
+                ctx.fill();
+                
+                ctx.fillStyle = "#666";
+                ctx.font = "9px sans-serif";
+                const label = bookmark.name.length > 15 ? bookmark.name.substring(0, 12) + "..." : bookmark.name;
+                ctx.fillText(label, drawX + 8, 14);
+            }
+        });
+        
+        const currentX = window.animationState.currentTime * pixelsPerSecond;
+        const drawCurrentX = currentX - startX;
+        if (drawCurrentX >= 0 && drawCurrentX <= visibleWidth) {
             ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, bottom);
-            ctx.strokeStyle = bookmark.isLoopStart ? "#00d4ff" : (bookmark.isLoopEnd ? "#ff9f43" : "#ff5ec4");
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            ctx.beginPath();
-            ctx.moveTo(x, 5);
-            ctx.lineTo(x + 6, 12);
-            ctx.lineTo(x, 19);
-            ctx.lineTo(x - 6, 12);
-            ctx.closePath();
-            ctx.fillStyle = bookmark.isLoopStart ? "#00d4ff" : (bookmark.isLoopEnd ? "#ff9f43" : "#ff5ec4");
-            ctx.fill();
-            ctx.strokeStyle = "#ffffff";
+            ctx.moveTo(drawCurrentX, 0);
+            ctx.lineTo(drawCurrentX, bottom);
+            ctx.strokeStyle = "#ff0000";
             ctx.lineWidth = 1;
             ctx.stroke();
-
-            ctx.fillStyle = "#ccc";
-            ctx.font = "9px sans-serif";
-            const label = bookmark.name.length > 15 ? bookmark.name.substring(0, 12) + "..." : bookmark.name;
-            ctx.fillText(label, x + 8, 14);
-        });
-
-        const currentX = window.animationState.currentTime * pixelsPerSecond;
-        ctx.beginPath();
-        ctx.moveTo(currentX, 0);
-        ctx.lineTo(currentX, bottom);
-        ctx.strokeStyle = "#ff0000";
-        ctx.lineWidth = 1;
-        ctx.stroke();
-
-        for (let s = 0; s <= duration + 1; s++) {
-            const x = s * pixelsPerSecond;
-            ctx.strokeStyle = "#666";
-            ctx.beginPath();
-            ctx.moveTo(x, bottom);
-            ctx.lineTo(x, bottom - 20);
-            ctx.stroke();
-            ctx.fillStyle = "#aaa";
-            ctx.font = "10px sans-serif";
-            ctx.fillText(s + "s", x + 4, bottom - 22);
-
-            for (let sub = 1; sub < subdivisions; sub++) {
-                const subX = x + (sub * pixelsPerSecond / subdivisions);
-                ctx.strokeStyle = "#333";
-                ctx.beginPath();
-                ctx.moveTo(subX, bottom);
-                ctx.lineTo(subX, bottom - 10);
-                ctx.stroke();
-            }
         }
     }
 
     function addBookmark(time, name = null) {
         time = Math.max(0, Math.min(time, window.animationState.duration));
-
+        
         const existing = bookmarks.find(b => Math.abs(b.time - time) < 0.05);
         if (existing) {
             showToast("Bookmark already exists at this time", 'I');
             return existing;
         }
-
+        
+        if (time >= window.animationState.duration - 0.1) {
+            const newDuration = time + 60;
+            window.animationState.duration = newDuration;
+            
+            if (typeof updateTimelineSize === 'function') updateTimelineSize();
+            if (typeof drawTimelineRuler === 'function') drawTimelineRuler();
+            if (typeof updateTimelineUI === 'function') updateTimelineUI();
+            if (typeof rebuildTracks === 'function') rebuildTracks();
+        }
+        
         const bookmark = {
             id: Date.now(),
             time: time,
@@ -115,17 +166,23 @@
             isLoopStart: false,
             isLoopEnd: false
         };
-
+    
         bookmarks.push(bookmark);
         bookmarks.sort((a, b) => a.time - b.time);
-        drawTimelineRuler();
+        
+        window.bookmarks = bookmarks;
+        
+        if (typeof drawTimelineRuler === 'function') drawTimelineRuler();
+        if (typeof rebuildTracks === 'function') rebuildTracks();
+        
         return bookmark;
     }
-
+    
     function removeBookmark(bookmark) {
         const index = bookmarks.indexOf(bookmark);
         if (index !== -1) {
             bookmarks.splice(index, 1);
+            window.bookmarks = bookmarks;
             drawTimelineRuler();
         }
     }
@@ -133,24 +190,33 @@
     function getTimelineTimeFromClick(clientX) {
         const rulerRect = timelineRuler.getBoundingClientRect();
         if (clientX < rulerRect.left || clientX > rulerRect.right) return 0;
-
-        const scrollLeft = timelineRuler.scrollLeft;
+        
+        const scrollLeft = timelineTracksWrapper.scrollLeft;
         const clickX = clientX - rulerRect.left;
         const absoluteX = clickX + scrollLeft;
-
         const time = absoluteX / pixelsPerSecond;
-        const maxTime = Math.max(window.animationState.duration, 60);
-        return Math.max(0, Math.min(time, maxTime));
+        
+        return time; //Math.max(0, Math.min(time, window.animationState.duration));
+    }
+    
+    function updateAllKeyframePositions() {
+        const keyframes = document.querySelectorAll('.keyframe');
+        keyframes.forEach(kf => {
+            const time = parseFloat(kf.getAttribute('data-time'));
+            if (time) {
+                kf.style.left = (time * pixelsPerSecond) + "px";
+            }
+        });
     }
 
     function findBookmarkAtPosition(clientX) {
         const rulerRect = timelineRuler.getBoundingClientRect();
         if (clientX < rulerRect.left || clientX > rulerRect.right) return null;
-
-        const scrollLeft = timelineRuler.scrollLeft;
+        
+        const scrollLeft = timelineTracksWrapper.scrollLeft;
         const clickX = clientX - rulerRect.left;
         const absoluteX = clickX + scrollLeft;
-
+        
         for (let bookmark of bookmarks) {
             const bookmarkX = bookmark.time * pixelsPerSecond;
             if (Math.abs(bookmarkX - absoluteX) < 10) {
@@ -304,22 +370,15 @@
     }
 
     function initTimelineRulerEvents() {
-        timelineRuler.addEventListener('click', (e) => {
-            if (e.ctrlKey) return;
 
-            const bookmark = findBookmarkAtPosition(e.clientX);
-            if (bookmark) return;
-
+        timelineRuler.addEventListener('mousedown', (e) => {
+            if (e.ctrlKey || e.button == 2) {
+                return;
+            }
+            
             const time = getTimelineTimeFromClick(e.clientX);
             if (window.seekAnimation) {
                 window.seekAnimation(time);
-                showToast(`Moved to ${time.toFixed(2)}s`, 'I');
-            }
-        });
-
-        timelineRuler.addEventListener('mousedown', (e) => {
-            if (e.ctrlKey) {
-                return;
             }
 
             const bookmark = findBookmarkAtPosition(e.clientX);
@@ -333,17 +392,27 @@
 
         timelineRuler.addEventListener('dblclick', (e) => {
             if (e.ctrlKey) return;
-
+        
             e.preventDefault();
             e.stopPropagation();
-            const time = getTimelineTimeFromClick(e.clientX);
+            let time = getTimelineTimeFromClick(e.clientX);
+            
+            if (time >= window.animationState.duration - 0.1) {
+                const newDuration = time + 60;
+                window.animationState.duration = newDuration;
+                if (typeof updateTimelineSize === 'function') updateTimelineSize();
+                if (typeof drawTimelineRuler === 'function') drawTimelineRuler();
+                if (typeof updateTimelineUI === 'function') updateTimelineUI();
+                if (typeof rebuildTracks === 'function') rebuildTracks();
+            }
+            
             const bookmark = addBookmark(time);
-
+        
             setTimeout(() => {
                 showPrompt("Enter bookmark name:", bookmark.name, (newName) => {
                     if (newName && newName.trim()) {
                         bookmark.name = newName;
-                        drawTimelineRuler();
+                        if (typeof drawTimelineRuler === 'function') drawTimelineRuler();
                     }
                 });
             }, 50);
@@ -352,7 +421,17 @@
         timelineRuler.addEventListener('contextmenu', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            const time = getTimelineTimeFromClick(e.clientX);
+            let time = getTimelineTimeFromClick(e.clientX);
+            
+            if (time >= window.animationState.duration - 0.1) {
+                const newDuration = time + 60;
+                window.animationState.duration = newDuration;
+                if (typeof updateTimelineSize === 'function') updateTimelineSize();
+                if (typeof drawTimelineRuler === 'function') drawTimelineRuler();
+                if (typeof updateTimelineUI === 'function') updateTimelineUI();
+                if (typeof rebuildTracks === 'function') rebuildTracks();
+            }
+            
             addBookmark(time);
         });
 
@@ -376,14 +455,18 @@
 
     function setMode(mode) {
         viewport.mode = mode;
+        const container = document.getElementById('animContainer');
+        
         if (mode === 'canvas') {
             container.classList.add('canvas-mode');
             btnModeCanvas.classList.add('mode-active');
             btnModeObject.classList.remove('mode-active');
+            canvas.style.cursor = 'grab';
         } else {
             container.classList.remove('canvas-mode');
             btnModeObject.classList.add('mode-active');
             btnModeCanvas.classList.remove('mode-active');
+            canvas.style.cursor = 'default';
         }
     }
 
@@ -438,6 +521,7 @@
 
     function updateGlobalDuration(duration) {
         window.animationState.duration = duration;
+        window.animationState.animationDuration = duration + 60;
         updateTimelineUI();
     }
 
@@ -459,7 +543,7 @@
     });
     container.addEventListener('wheel', (e) => {
         if (e.ctrlKey) e.preventDefault();
-        if (!e.ctrlKey || viewport.mode !== 'canvas') return;
+        if (!e.ctrlKey) return;
         e.preventDefault();
         const rect = container.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
@@ -479,9 +563,6 @@
     canvas.addEventListener('mousedown', onStart);
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onEnd);
-    canvas.addEventListener('touchstart', onStart, {
-        passive: false
-    });
     window.addEventListener('touchmove', onMove, {
         passive: false
     });
@@ -878,21 +959,21 @@
         document.body.style.cursor = "default";
     });
     resizeHandle.addEventListener("touchstart", (e) => {
-        resizingTimeline = true;
+        timelineResizing = true;
         startY = e.touches[0].clientY;
         startHeight = timelineContainer.offsetHeight;
     });
     document.addEventListener("touchmove", (e) => {
-        if (!resizingTimeline) return;
+        if (!timelineResizing) return;
         const dy = startY - e.touches[0].clientY;
-        const newHeight = Math.max(40, startHeight + dy);
+        const newHeight = Math.max(120, startHeight + dy);
         playerTime.style.bottom = (newHeight + 5) + "px";
         timelineContainer.style.height = newHeight + "px";
         updatePlayhead();
         fitCanvasToScreen();
     });
     document.addEventListener("touchend", () => {
-        resizingTimeline = false;
+        timelineResizing = false;
     });
 
     function showToast(message, type, duration = 3000) {
@@ -921,18 +1002,8 @@
         }, duration);
     }
 
-    /*
     window.updateTimelineSize = function() {
-        const duration = window.animationState.duration || 10;
-        const timelineWidth = duration * pixelsPerSecond + 800;
-        timelineTracks.style.width = timelineWidth + "px";
-        timelineRuler.style.width = timelineWidth + "px";
-        timelineRuler.width = timelineWidth;
-        drawTimelineRuler();
-    }
-    */
-    window.updateTimelineSize = function() {
-        const duration = window.animationState.duration || 60;
+        const duration = window.animationState.animationDuration || 60;
         const minWidth = Math.max(duration * pixelsPerSecond + 200, 60 * pixelsPerSecond + 200);
         const timelineWidth = Math.max(minWidth, timelineTracksWrapper.clientWidth + 100);
         timelineTracks.style.width = timelineWidth + "px";
@@ -942,11 +1013,11 @@
     }
 
     timelineTracksWrapper.addEventListener("mousedown", startTimelineDrag);
-    timelineRuler.addEventListener("mousedown", startTimelineDrag);
+    rulerCntainer.addEventListener("mousedown", startTimelineDrag);
     timelineTracksWrapper.addEventListener("touchstart", startTimelineDrag, {
         passive: false
     });
-    timelineRuler.addEventListener("touchstart", startTimelineDrag, {
+    rulerCntainer.addEventListener("touchstart", startTimelineDrag, {
         passive: false
     });
     window.addEventListener("mousemove", moveTimelineDrag);
@@ -959,18 +1030,93 @@
 
     timelineTracksWrapper.addEventListener("scroll", () => {
         const scrollX = timelineTracksWrapper.scrollLeft;
-        timelineRuler.style.transform = `translateX(${-scrollX}px)`;
+        rulerCntainer.style.transform = scrollX; //`translateX(${-scrollX}px)`;
         trackLabels.scrollTop = timelineTracksWrapper.scrollTop;
         drawTimelineRuler();
     });
+    trackLabels.addEventListener("scroll", () => {
+        timelineTracksWrapper.scrollTop = trackLabels.scrollTop;
+    });
+    
+    function zoomTimeline(deltaY, mouseX) {
+        const scrollLeft = timelineTracksWrapper.scrollLeft;
+        const rulerRect = timelineRuler.getBoundingClientRect();
+        const mouseTimelineX = mouseX - rulerRect.left + scrollLeft;
+        const mouseTime = mouseTimelineX / pixelsPerSecond;
+        
+        let newZoom = timelineZoomLevel;
+        if (deltaY < 0) {
+            newZoom = Math.min(MAX_ZOOM, timelineZoomLevel + ZOOM_STEP);
+        } else {
+            newZoom = Math.max(MIN_ZOOM, timelineZoomLevel - ZOOM_STEP);
+        }
+        
+        if (newZoom === timelineZoomLevel) return;
+        
+        timelineZoomLevel = newZoom;
+        pixelsPerSecond = 100 * timelineZoomLevel;
+        
+        const newMouseTimelineX = mouseTime * pixelsPerSecond;
+        const newScrollLeft = Math.max(0, newMouseTimelineX - (mouseTimelineX - scrollLeft));
+        
+        const duration = window.animationState.animationDuration || 60;
+        timelineTracks.style.width = (duration * pixelsPerSecond + 200) + "px";
+        
+        document.querySelectorAll('.keyframe').forEach(kf => {
+            const time = parseFloat(kf.getAttribute('data-time'));
+            if (time) kf.style.left = (time * pixelsPerSecond) + "px";
+        });
+        
+        timelineTracksWrapper.scrollLeft = newScrollLeft;
+        drawTimelineRuler();
+    }
+    
+    timelineContainer.addEventListener('wheel', (e) => {
+        if (e.ctrlKey) {
+            e.preventDefault();
+            e.stopPropagation();
+            zoomTimeline(e.deltaY, e.clientX);
+        }
+    }, { passive: false });
+    
+    timelineRuler.addEventListener('dblclick', (e) => {
+        if (e.ctrlKey) {
+            e.preventDefault();
+            pixelsPerSecond = 100;
+            timelineZoomLevel = 1;
+            updateTimelineSize();
+            drawTimelineRuler();
+        }
+    });
+    
+    function updateTrackRowWidths() {
+        const duration = window.animationState.duration || 60;
+        const timelineWidth = Math.max(duration * pixelsPerSecond + 200, timelineTracksWrapper.clientWidth + 100);
+        const trackRows = document.querySelectorAll('.track-row');
+        trackRows.forEach(row => {
+            row.style.width = timelineWidth + "px";
+        });
+    }
+    
+    function afterZoom() {
+        updateTrackRowWidths();
+        rebuildTracks();
+        drawTimelineRuler();
+    }
 
     function updateTimelineSize() {
-        const duration = window.animationState.duration || 60;
-        const minWidth = Math.max(duration * pixelsPerSecond + 200, 60 * pixelsPerSecond + 200);
-        const timelineWidth = Math.max(minWidth, timelineTracksWrapper.clientWidth + 100);
+        const duration = window.animationState.animationDuration || 60;
+        const timelineWidth = Math.max(duration * pixelsPerSecond + 200, timelineTracksWrapper.clientWidth + 100);
+        
         timelineTracks.style.width = timelineWidth + "px";
         timelineRuler.width = timelineWidth;
         timelineRuler.style.width = timelineWidth + "px";
+        
+        const trackRows = timelineTracks.querySelectorAll('.track-row');
+        trackRows.forEach(row => {
+            row.style.width = timelineWidth + "px";
+        });
+        
         drawTimelineRuler();
     }
 
@@ -1158,7 +1304,7 @@
     }
 
     function activateSelectionTool() {
-        if (typeof setDrawingTool === 'function' && allStrokes.length > 0) {
+        if (typeof setDrawingTool === 'function') {
             finishDrawing();
             cancelDrawing();
             setDrawingTool(null);
@@ -1253,20 +1399,32 @@
     function performLoadProject(jsonData) {
         try {
             const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
-            if (!data.version || !data.settings || !data.shapes) {
+            if(!data.version || !data.settings || !data.shapes) {
                 showToast("Invalid project file format", 'E');
                 return false;
             }
-
+            
             const oldShapes = [...shapes];
             const oldSettings = JSON.parse(JSON.stringify(window.animationState.settings));
             const oldDuration = window.animationState.duration;
-
-            shapes = [];
-
-            for (let shapeData of data.shapes) {
+            
+            function loadImageFromBase64(base64Data) {
+                return new Promise((resolve) => {
+                    if (!base64Data) {
+                        resolve(null);
+                        return;
+                    }
+                    const img = new Image();
+                    img.onload = () => resolve(img);
+                    img.onerror = () => resolve(null);
+                    img.src = base64Data;
+                });
+            }
+            
+            async function processShape(shapeData) {
                 let newShape;
-                if (shapeData.type === 'group') {
+                
+                if(shapeData.type === 'group') {
                     newShape = new Group(shapeData.name);
                     newShape.x = shapeData.x;
                     newShape.y = shapeData.y;
@@ -1287,111 +1445,138 @@
                     newShape.shadowOffsetY = shapeData.shadowOffsetY;
                     newShape.shadowOpacity = shapeData.shadowOpacity;
                     newShape.expanded = shapeData.expanded;
-                    if (shapeData.customName) newShape.customName = shapeData.customName;
-
-                    if (shapeData.children) {
-                        for (let childData of shapeData.children) {
-                            const child = recreateShape(childData);
-                            if (child) {
+                    if(shapeData.customName) newShape.customName = shapeData.customName;
+                    
+                    if(shapeData.children) {
+                        for(let childData of shapeData.children) {
+                            const child = await processShape(childData);
+                            if(child) {
                                 child.parentGroup = newShape;
                                 newShape.children.push(child);
                             }
                         }
                     }
-                } else if (shapeData.type === 'drawing') {
+                } 
+                else if(shapeData.type === 'drawing') {
                     newShape = new Shape('drawing', shapeData.x, shapeData.y, shapeData.size);
                     newShape.strokesData = shapeData.strokesData || [];
-                    newShape.strokeFillColors = shapeData.strokeFillColors || [];
+                    newShape.fillColor = shapeData.fillColor || [];
                     newShape.isDrawing = true;
                     newShape.finished = true;
                     newShape.editable = false;
-                    if (shapeData.customName) newShape.customName = shapeData.customName;
-                } else {
+                    if(shapeData.customName) newShape.customName = shapeData.customName;
+                }
+                else {
                     newShape = recreateShape(shapeData);
-                    if (shapeData.customName) newShape.customName = shapeData.customName;
+                    if(shapeData.customName) newShape.customName = shapeData.customName;
                 }
-
-                if (newShape) {
-                    if (shapeData.keyframes && shapeData.keyframes.length > 0) {
-                        newShape.keyframes = shapeData.keyframes;
+                
+                if(shapeData.imageData) {
+                    const img = await loadImageFromBase64(shapeData.imageData);
+                    if(img) newShape.imageObj = img;
+                }
+                
+                if(shapeData.bgImageData) {
+                    const img = await loadImageFromBase64(shapeData.bgImageData);
+                    if(img) newShape.bgImageObj = img;
+                }
+                
+                if(shapeData.keyframes && shapeData.keyframes.length > 0) {
+                    newShape.keyframes = shapeData.keyframes;
+                }
+                
+                return newShape;
+            }
+            
+            async function loadAllShapes() {
+                const loadedShapes = [];
+                for(let shapeData of data.shapes) {
+                    const shape = await processShape(shapeData);
+                    if(shape) loadedShapes.push(shape);
+                }
+                return loadedShapes;
+            }
+            
+            loadAllShapes().then(async (loadedShapes) => {
+                shapes = loadedShapes;
+                
+                window.animationState.settings = data.settings;
+                
+                let maxTime = 0;
+                for(let shape of shapes) {
+                    for(let kf of shape.keyframes) {
+                        if(kf.time > maxTime) {
+                            maxTime = kf.time;
+                        }
                     }
-                    shapes.push(newShape);
                 }
-            }
-
-            window.animationState.settings = data.settings;
-
-            let maxTime = 0;
-            for (let shape of shapes) {
-                for (let kf of shape.keyframes) {
-                    if (kf.time > maxTime) {
-                        maxTime = kf.time;
+                window.animationState.duration = Math.max(60, maxTime + (1 / window.animationState.fps));
+                
+                if(typeof updateGlobalDuration === 'function') {
+                    updateGlobalDuration(window.animationState.duration);
+                }
+                
+                if(shapeManager && typeof shapeManager.buildTrack === 'function') {
+                    for(let shape of shapes) {
+                        shapeManager.buildTrack(shape);
                     }
+                    shapeManager.shapes = shapes;
                 }
-            }
-            window.animationState.duration = Math.max(60, maxTime + (1 / window.animationState.fps));
-
-            if (typeof updateGlobalDuration === 'function') {
-                updateGlobalDuration(window.animationState.duration);
-            }
-
-            if (shapeManager && typeof shapeManager.buildTrack === 'function') {
-                for (let shape of shapes) {
-                    shapeManager.buildTrack(shape);
+                
+                if(typeof initCanvas === 'function') {
+                    initCanvas();
                 }
-
-                shapeManager.shapes = shapes;
-            }
-
-            if (typeof initCanvas === 'function') {
-                initCanvas();
-            }
-            if (typeof rebuildTracks === 'function') {
-                rebuildTracks();
-            }
-            if (typeof drawTimelineRuler === 'function') {
-                drawTimelineRuler();
-            }
-            if (typeof updateTimelineSize === 'function') {
-                updateTimelineSize();
-            }
-            if (typeof drawAll === 'function') {
-                drawAll();
-            }
-            if (typeof clearSelection === 'function') {
-                clearSelection();
-            }
-            if (typeof window.seekAnimation === 'function') {
-                window.seekAnimation(0);
-            }
-            if (typeof updateUndoRedoButtons === 'function') {
-                updateUndoRedoButtons();
-            }
-
-            if (window.undoManager) {
-                const importCommand = {
-                    execute: () => {},
-                    undo: () => {
-                        shapes = oldShapes;
-                        window.animationState.settings = oldSettings;
-                        window.animationState.duration = oldDuration;
-                        if (shapeManager) shapeManager.shapes = shapes;
-                        if (typeof initCanvas === 'function') initCanvas();
-                        if (typeof rebuildTracks === 'function') rebuildTracks();
-                        if (typeof drawTimelineRuler === 'function') drawTimelineRuler();
-                        if (typeof updateTimelineSize === 'function') updateTimelineSize();
-                        if (typeof drawAll === 'function') drawAll();
-                        if (typeof clearSelection === 'function') clearSelection();
-                        if (typeof window.seekAnimation === 'function') window.seekAnimation(0);
-                        showToast("Import undone", 'I');
-                    }
-                };
-                window.undoManager.execute(importCommand);
-            }
-
-            showToast(`Project loaded successfully! Duration: ${window.animationState.duration.toFixed(2)}s`, 'S');
+                if(typeof rebuildTracks === 'function') {
+                    rebuildTracks();
+                }
+                if(typeof drawTimelineRuler === 'function') {
+                    drawTimelineRuler();
+                }
+                if(typeof updateTimelineSize === 'function') {
+                    updateTimelineSize();
+                }
+                if(typeof drawAll === 'function') {
+                    drawAll();
+                }
+                if(typeof clearSelection === 'function') {
+                    clearSelection();
+                }
+                if(typeof window.seekAnimation === 'function') {
+                    window.seekAnimation(0);
+                }
+                if(typeof updateUndoRedoButtons === 'function') {
+                    updateUndoRedoButtons();
+                }
+                
+                if(window.undoManager) {
+                    const importCommand = {
+                        execute: () => {},
+                        undo: () => {
+                            shapes = oldShapes;
+                            window.animationState.settings = oldSettings;
+                            window.animationState.duration = oldDuration;
+                            if(shapeManager) shapeManager.shapes = shapes;
+                            if(typeof initCanvas === 'function') initCanvas();
+                            if(typeof rebuildTracks === 'function') rebuildTracks();
+                            if(typeof drawTimelineRuler === 'function') drawTimelineRuler();
+                            if(typeof updateTimelineSize === 'function') updateTimelineSize();
+                            if(typeof drawAll === 'function') drawAll();
+                            if(typeof clearSelection === 'function') clearSelection();
+                            if(typeof window.seekAnimation === 'function') window.seekAnimation(0);
+                            showToast("Import undone", 'I');
+                        }
+                    };
+                    window.undoManager.execute(importCommand);
+                }
+                
+                showToast(`Project loaded successfully! Duration: ${window.animationState.duration.toFixed(2)}s`, 'S');
+            }).catch(error => {
+                console.error("Import error:", error);
+                showToast("Failed to load project: " + error.message, 'E');
+            });
+            
             return true;
-
+            
         } catch (error) {
             console.error("Import error:", error);
             showToast("Failed to load project: " + error.message, 'E');
@@ -1543,6 +1728,7 @@
         updateTimelineSize();
         drawTimelineRuler();
         updateTimelineUI();
+        updateAllKeyframePositions();
 
         if (loopEnabled) {
             loopEndTime = newDuration;
@@ -1564,11 +1750,9 @@
             if (autoExtendEnabled) {
                 btnAutoExtend.classList.add('mode-active');
                 btnAutoExtend.style.color = 'var(--accent)';
-                showToast("Auto-extend timeline ON", 'S');
             } else {
                 btnAutoExtend.classList.remove('mode-active');
                 btnAutoExtend.style.color = '';
-                showToast("Auto-extend timeline OFF", 'I');
             }
         });
 
@@ -1576,6 +1760,57 @@
             btnAutoExtend.classList.add('mode-active');
             btnAutoExtend.style.color = 'var(--accent)';
         }
+    }
+    
+    function initMobileSidebar() {
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const operationsSection = document.querySelector('.operations-section');
+        const animationSection = document.querySelector('.animation-section');
+        
+        if (!sidebarToggle || !operationsSection) return;
+        
+        let overlay = document.querySelector('.sidebar-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.className = 'sidebar-overlay';
+            document.body.appendChild(overlay);
+        }
+        
+        function closeSidebar() {
+            operationsSection.classList.remove('sidebar-open');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        function openSidebar() {
+            operationsSection.classList.add('sidebar-open');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function toggleSidebar() {
+            if (operationsSection.classList.contains('sidebar-open')) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
+        }
+        
+        sidebarToggle.addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', closeSidebar);
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && operationsSection.classList.contains('sidebar-open')) {
+                closeSidebar();
+            }
+        });
+        
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                closeSidebar();
+                operationsSection.style.right = '';
+            }
+        });
     }
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -1586,10 +1821,16 @@
         const btnCancelDrawing = document.getElementById('btnCancelDrawing');
         const strokeColorPicker = document.getElementById('strokeColorPicker');
         const easingSelect = document.getElementById('easingSelect');
-        playerTime.style.bottom = '45px';
-        timelineContainer.style.height = '40px';
+        btnModeObject.addEventListener('click', () => setMode('object'));
+        btnModeCanvas.addEventListener('click', () => setMode('canvas'));
+        playerTime.style.bottom = '185px';
+        timelineContainer.style.height = '180px';
         initCanvas();
         shapeManager = new ShapeManager(shapes, drawAll, () => window.animationState.settings, updateGlobalDuration);
+        
+        if (typeof initAllShapesAttachPoints === 'function') {
+            initAllShapesAttachPoints();
+        }
         drawTimelineRuler();
         rebuildTracks();
         updateTimelineUI();
@@ -1601,7 +1842,9 @@
         initFillBucketTool();
         initDrawingCanvas();
         updateSoloModeStatus();
-        //initTimelineAutoExtend();
+        initTimelineAutoExtend();
+        initTimelineHover();
+        initMobileSidebar();
         const btnGroup = document.getElementById('btnGroup');
         const btnUngroup = document.getElementById('btnUngroup');
         if (btnGroup) {
@@ -1899,5 +2142,115 @@
             fontSelect.appendChild(systemGroup);
             fontSelect.appendChild(googleGroup);
         }
+        
+        canvas.addEventListener('touchstart', (e) => {
+            if (viewport.mode !== 'canvas') return;
+            
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                isPinching = true;
+                
+                const rect = canvas.getBoundingClientRect();
+                const touch1 = e.touches[0];
+                const touch2 = e.touches[1];
+                
+                initialViewportPointX = viewport.pointX;
+                initialViewportPointY = viewport.pointY;
+                initialPinchPointX = (touch1.clientX + touch2.clientX) / 2 - rect.left;
+                initialPinchPointY = (touch1.clientY + touch2.clientY) / 2 - rect.top;
+                
+                initialPinchDistance = Math.hypot(
+                    touch1.clientX - touch2.clientX,
+                    touch1.clientY - touch2.clientY
+                );
+                initialPinchScale = viewport.scale;
+            }
+        }, { passive: false });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            if (viewport.mode !== 'canvas') return;
+            
+            if (e.touches.length === 2 && isPinching && initialPinchDistance > 0) {
+                e.preventDefault();
+                
+                const touch1 = e.touches[0];
+                const touch2 = e.touches[1];
+                
+                const currentDistance = Math.hypot(
+                    touch1.clientX - touch2.clientX,
+                    touch1.clientY - touch2.clientY
+                );
+                
+                const scaleChange = currentDistance / initialPinchDistance;
+                let newScale = initialPinchScale * scaleChange;
+                newScale = Math.min(5, Math.max(0.1, newScale));
+                
+                const worldX = (initialPinchPointX - initialViewportPointX) / viewport.scale;
+                const worldY = (initialPinchPointY - initialViewportPointY) / viewport.scale;
+                
+                viewport.scale = newScale;
+                
+                viewport.pointX = initialPinchPointX - worldX * viewport.scale;
+                viewport.pointY = initialPinchPointY - worldY * viewport.scale;
+                
+                canvas.style.transform = `translate(${viewport.pointX}px, ${viewport.pointY}px) scale(${viewport.scale})`;
+                canvas.style.transformOrigin = "top left";
+                
+                if (drawingCanvas) {
+                    drawingCanvas.style.transform = canvas.style.transform;
+                    drawingCanvas.style.transformOrigin = canvas.style.transformOrigin;
+                }
+            }
+        }, { passive: false });
+        
+        canvas.addEventListener('touchend', (e) => {
+            if (viewport.mode !== 'canvas') return;
+            
+            if (e.touches.length < 2) {
+                isPinching = false;
+                initialPinchDistance = 0;
+            }
+        });
+        
+        canvas.addEventListener('touchstart', (e) => {
+            if (viewport.mode !== 'canvas') return;
+            if (e.touches.length === 1 && !isPinching) {
+                e.preventDefault();
+                isTouchPanning = true;
+                touchPanStartX = e.touches[0].clientX;
+                touchPanStartY = e.touches[0].clientY;
+                touchPanStartPointX = viewport.pointX;
+                touchPanStartPointY = viewport.pointY;
+                canvas.style.cursor = 'grabbing';
+            }
+        }, { passive: false });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            if (viewport.mode !== 'canvas') return;
+            
+            if (e.touches.length === 1 && isTouchPanning && !isPinching) {
+                e.preventDefault();
+                
+                const deltaX = e.touches[0].clientX - touchPanStartX;
+                const deltaY = e.touches[0].clientY - touchPanStartY;
+                
+                viewport.pointX = touchPanStartPointX + deltaX;
+                viewport.pointY = touchPanStartPointY + deltaY;
+                
+                canvas.style.transform = `translate(${viewport.pointX}px, ${viewport.pointY}px) scale(${viewport.scale})`;
+                canvas.style.transformOrigin = "top left";
+                
+                if (drawingCanvas) {
+                    drawingCanvas.style.transform = canvas.style.transform;
+                    drawingCanvas.style.transformOrigin = canvas.style.transformOrigin;
+                }
+            }
+        }, { passive: false });
+        
+        canvas.addEventListener('touchend', (e) => {
+            if (viewport.mode !== 'canvas') return;
+            isTouchPanning = false;
+            canvas.style.cursor = 'grab';
+        });
 
     });
