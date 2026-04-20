@@ -5,7 +5,11 @@
         pointY: 0,
         startX: 0,
         startY: 0,
-        mode: 'object'
+        mode: 'object',
+        startDist: null,
+        startScale: null,
+        startCenterX: null,
+        startCenterY: null
     };
     let scrubPending = false;
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -43,6 +47,7 @@
     const playerTime = document.getElementById("playerTime");
     const resizeHandle = document.getElementById("timelineResizeHandle");
     const btnPencil = document.getElementById('btnPencil');
+    const rulerCntainer = document.getElementById('ruler-container');
     
     let selectionToolActive = true;
     let timelineResizing = false;
@@ -93,7 +98,7 @@
     let isUndoRedoInProgress = false;
     let lastDrawTime = -1;
     let pixelsPerSecond = 120;
-    const subdivisions = 10;
+    let subdivisions = 10;
     let timelineDragging = false;
     let timelineDragStartX = 0;
     let timelineScrollStart = 0;
@@ -168,10 +173,41 @@
     let soloEditObject = null;
     let lockedObjects = new Set();
     let originalHierarchy = [];
-    let autoExtendEnabled = true;
+    let autoExtendEnabled = false;
     let autoExtendThreshold = 100;
     let activeTooltip = null;
     let tooltipTimeout = null;
+    let timelineZoomLevel = 1;
+    const MIN_ZOOM = 0.5;
+    const MAX_ZOOM = 3;
+    const ZOOM_STEP = 0.1;
+    let copiedKeyframe = null;
+    let copiedKeyframeSourceShape = null;
+    let timelineHoverLineRuler = null;
+    let timelineHoverLineWrapper = null;
+    let timelineHoverTooltip = null;
+    let lastMouseX = null;
+    
+    let initialPinchDistance = 0;
+    let initialPinchScale = 1;
+    let initialPinchPointX = 0;
+    let initialPinchPointY = 0;
+    let initialViewportPointX = 0;
+    let initialViewportPointY = 0;
+    let isPinching = false;
+    
+    let touchPanStartX = 0, touchPanStartY = 0;
+    let touchPanStartPointX = 0, touchPanStartPointY = 0;
+    let isTouchPanning = false;
+    
+    let timelineTouchStartX = 0;
+    let timelineTouchStartScrollLeft = 0;
+    let isTimelineTouching = false;
+    let isRulerTouching = false;
+    let touchStartTime = 0;
+    let touchMoved = false;
+    const LONG_PRESS_DURATION = 500;
+    const MOVE_THRESHOLD = 10;
     
     const FONT_LIST = [
         { value: "Arial, Helvetica, sans-serif", display: "Arial", category: "system" },
@@ -206,6 +242,7 @@
         isPlaying: false,
         currentTime: 0,
         duration: 60,
+        animationDuration: 60,
         fps: 60,
         lastFrameTime: 0,
         settings: {
