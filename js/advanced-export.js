@@ -395,32 +395,82 @@ async function exportAsVideo() {
 }
 function exportAsJSON() {
     updateExportProgress(0, "Preparing JSON data...");
-    const cleanShapes = shapes.map(s => {
-        const copy = { ...s };
+    
+    function getBase64FromImage(img) {
+        if (!img) return null;
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        
+        return canvas.toDataURL('image/png');
+    }
+    
+    function processShape(shape) {
+        const copy = { ...shape };
+        
         delete copy.imageObj;
         delete copy.fillImageObj;
         delete copy.parentGroup;
+        delete copy.track;
+        delete copy._kfIndex;
+        delete copy._lastTime;
+        delete copy._cachedBounds;
+        delete copy._cachedTransform;
+        
+        if (shape.imageObj) {
+            copy.imageData = getBase64FromImage(shape.imageObj);
+        }
+        
+        if (shape.bgImageObj) {
+            copy.bgImageData = getBase64FromImage(shape.bgImageObj);
+        }
+        
+        if (copy.type === 'group' && copy.children) {
+            copy.children = copy.children.map(child => processShape(child));
+        }
+        
+        if (copy.type === 'drawing' && copy.strokesData) {
+            copy.strokesData = JSON.parse(JSON.stringify(copy.strokesData));
+        }
+        
         return copy;
-    });
-    updateExportProgress(50, "Creating JSON file...");
+    }
+    
+    const cleanShapes = shapes.map(shape => processShape(shape));
+    
     const data = {
         version: "2.0",
+        exportDate: new Date().toISOString(),
         settings: window.animationState.settings,
         shapes: cleanShapes,
-        exportDate: new Date().toISOString()
+        metadata: {
+            appName: "MR Studio",
+            version: "2.0",
+            totalShapes: shapes.length,
+            duration: window.animationState.duration,
+            fps: window.animationState.fps,
+            exportedWith: "MR Studio Animation Tool"
+        }
     };
-    updateExportProgress(80, "Generating download...");
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    
+    updateExportProgress(50, "Creating JSON file...");
+    
+    const jsonStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${window.animationState.settings.projectName}_project.json`;
+    a.download = `${window.animationState.settings.projectName}_${new Date().toISOString().slice(0,19)}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    
     updateExportProgress(100, "Export complete!");
-    showToast("Project exported!", 'S');
+    showToast("Project exported with images!", 'S');
     isExporting = false;
 }
 async function startAdvancedExport() {
