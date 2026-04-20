@@ -96,7 +96,7 @@ function initTimelineHover() {
         const scrollLeft = timelineTracksWrapper.scrollLeft;
         const absoluteX = scrollLeft + mouseX;
         let timeAtMouse = absoluteX / pixelsPerSecond;
-        const duration = window.animationState ? .animationDuration || 60;
+        const duration = window.animationState ?.animationDuration || 60;
         const clampedTime = Math.max(0, Math.min(timeAtMouse, duration));
 
         timelineHoverLineRuler.style.display = 'block';
@@ -153,7 +153,7 @@ function initTimelineHover() {
             const scrollLeft = timelineTracksWrapper.scrollLeft;
             const absoluteX = scrollLeft + lastMouseX;
             let timeAtMouse = absoluteX / pixelsPerSecond;
-            const duration = window.animationState ? .duration || 60;
+            const duration = window.animationState ?.duration || 60;
             const clampedTime = Math.max(0, Math.min(timeAtMouse, duration));
 
             let isNearBookmark = false;
