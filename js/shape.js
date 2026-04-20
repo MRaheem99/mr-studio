@@ -961,7 +961,7 @@ class Shape {
         if (!this.selected) return null;
         if (this.type === "path" && !this.finished && this.points) {
             for (let i = 0; i < this.points.length; i++) {
-                const hitR = 20 / (viewport ? .scale || 1);
+                const hitR = 20 / (viewport ?.scale || 1);
                 const p = this.points[i];
                 if (p.out && (p.out.x !== 0 || p.out.y !== 0)) {
                     const outWorld = this.localToWorld(p.x + p.out.x, p.y + p.out.y);
@@ -986,7 +986,7 @@ class Shape {
             }
         }
         if ((this.type === 'drawing' || this.type === "polyline" || this.type === "path") && !this.finished && this.points) {
-            const hitR = 20 / (viewport ? .scale || 1);
+            const hitR = 20 / (viewport ?.scale || 1);
             for (let i = 0; i < this.points.length; i++) {
                 const p = this.points[i];
                 const world = this.localToWorld(p.x, p.y);
@@ -999,7 +999,7 @@ class Shape {
             }
         }
 
-        const hitR = 20 / (viewport ? .scale || 1);
+        const hitR = 20 / (viewport ?.scale || 1);
         let baseW = this.size;
         let baseH = this.size;
         if (this.type === 'text') {
@@ -1019,7 +1019,7 @@ class Shape {
         }
         const scaledW = baseW * Math.abs(this.scaleX);
         const scaledH = baseH * Math.abs(this.scaleY);
-        const pad = 12 / (viewport ? .scale || 1);
+        const pad = 12 / (viewport ?.scale || 1);
         const halfW = scaledW / 2 + pad;
         const halfH = scaledH / 2 + pad;
         const cos = Math.cos(this.rotation);
@@ -1028,7 +1028,7 @@ class Shape {
             x: this.x + (lx * cos - ly * sin),
             y: this.y + (lx * sin + ly * cos)
         });
-        const rotY = -halfH - 35 / (viewport ? .scale || 1);
+        const rotY = -halfH - 35 / (viewport ?.scale || 1);
         const rotW = toWorld(0, rotY);
         if (Math.hypot(px - rotW.x, py - rotW.y) < hitR) return 'rotate';
         const corners = [{
@@ -1079,21 +1079,21 @@ class Shape {
         }
         const skews = [{
                 x: 0,
-                y: -halfH - 20 / (viewport ? .scale || 1),
+                y: -halfH - 20 / (viewport ?.scale || 1),
                 id: 'skewY'
             },
             {
                 x: 0,
-                y: halfH + 20 / (viewport ? .scale || 1),
+                y: halfH + 20 / (viewport ?.scale || 1),
                 id: 'skewY'
             },
             {
-                x: -halfW - 20 / (viewport ? .scale || 1),
+                x: -halfW - 20 / (viewport ?.scale || 1),
                 y: 0,
                 id: 'skewX'
             },
             {
-                x: halfW + 20 / (viewport ? .scale || 1),
+                x: halfW + 20 / (viewport ?.scale || 1),
                 y: 0,
                 id: 'skewX'
             }
