@@ -2,7 +2,7 @@
 
 # 🎨 MR Studio
 
-### Professional Web-Based 2D Javascript Animation Software
+### Javascript Animation Software
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/MRaheem99/mr-studio)](https://github.com/MRaheem99/mr-studio/stargazers)
