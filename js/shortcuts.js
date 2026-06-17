@@ -4,8 +4,8 @@
 | Arrow Keys                   |	        Move selected object by 1px  |
 --------------------------------------------------------------------------
 | Shift + Arrow Keys	       |            Move selected object by 10px |
-| Ctrl + Arrow Keys	           |            Rotate by 5deg               |
-| Ctrl + Shift + Arrow Keys	   |            Rotate by 15deg              |
+| Ctrl + Arrow Keys	           |            Rotate by 1deg               |
+| Ctrl + Shift + Arrow Keys	   |            Rotate by 5deg              |
 | Delete / Del	               |            Delete selected object(s)    |
 | Ctrl + C	                   |            Copy selected object(s)      |
 | Ctrl + V	                   |            Paste copied object(s)       |
